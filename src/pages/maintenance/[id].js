@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/layout/Layout';
-import { Card, Badge, Button, Select, Input, Spinner, Avatar, fmt, apiFetch, toast } from '../../components/ui';
+import { Card, Badge, Button, Select, Input, Spinner, fmt, apiFetch, toast } from '../../components/ui';
 import { useAuth } from '../_app';
+import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
 import Head from 'next/head';
 
 export default function MaintenanceDetailPage() {
@@ -15,24 +16,53 @@ export default function MaintenanceDetailPage() {
   const [sending, setSending] = useState(false);
   const [updateForm, setUpdateForm] = useState({ status: '', assigned_technician: '' });
   const [updating, setUpdating] = useState(false);
-  const chatRef = useRef(null);
 
   const isTenant = user?.role === 'tenant';
   const isAdmin = user?.role === 'superadmin';
 
-  useEffect(() => { if (id) loadDetail(); }, [id]);
-  useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [data?.messages]);
+  const detailEndpoint = id
+    ? (isTenant ? `/api/tenant/maintenance-detail?id=${id}` : `/api/owner/maintenance-detail?id=${id}`)
+    : null;
 
-  async function loadDetail() {
-    setLoading(true);
-    try {
-      const endpoint = isTenant ? `/api/tenant/maintenance-detail?id=${id}` : `/api/owner/maintenance-detail?id=${id}`;
-      const d = await apiFetch(endpoint);
+  const fetchDetail = useCallback(async () => {
+    if (!detailEndpoint) return null;
+    return apiFetch(detailEndpoint);
+  }, [detailEndpoint]);
+
+  const { chatRef, scrollToBottom, pollNow } = useMaintenanceChatPoll({
+    enabled: !!id && !!data && !loading,
+    fetchDetail,
+    onUpdate: (d) => {
       setData(d);
-      setUpdateForm({ status: d.status, assigned_technician: d.assigned_technician || '' });
-    } catch (e) { toast.error(e.message); router.push('/maintenance'); }
-    finally { setLoading(false); }
-  }
+      setUpdateForm((f) => ({
+        status: d.status,
+        assigned_technician: d.assigned_technician || f.assigned_technician,
+      }));
+    },
+  });
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const d = await fetchDetail();
+        if (cancelled) return;
+        setData(d);
+        setUpdateForm({ status: d.status, assigned_technician: d.assigned_technician || '' });
+        requestAnimationFrame(() => scrollToBottom(true));
+      } catch (e) {
+        if (!cancelled) {
+          toast.error(e.message);
+          router.push('/maintenance');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [id, fetchDetail, router, scrollToBottom]);
 
   async function handleSendMessage() {
     if (!message.trim()) return;
@@ -41,7 +71,8 @@ export default function MaintenanceDetailPage() {
       const endpoint = isTenant ? '/api/tenant/maintenance-message' : '/api/owner/maintenance-message';
       await apiFetch(endpoint, { method: 'POST', body: { request_id: id, message: message.trim() } });
       setMessage('');
-      loadDetail();
+      await pollNow();
+      scrollToBottom(true);
     } catch (e) { toast.error(e.message); }
     finally { setSending(false); }
   }
@@ -51,7 +82,7 @@ export default function MaintenanceDetailPage() {
     try {
       await apiFetch('/api/owner/maintenance', { method: 'PATCH', body: { id, ...updateForm } });
       toast.success('Request updated!');
-      loadDetail();
+      await pollNow();
     } catch (e) { toast.error(e.message); }
     finally { setUpdating(false); }
   }

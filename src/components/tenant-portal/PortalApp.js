@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Badge, Button, Select, Input, Textarea, Spinner, fmt, FeaturePill, EmptyState, Card,
 } from '../ui';
+import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
 
 const MR_TYPES = [
   { value: 'electricity', label: 'Electricity' },
@@ -44,7 +45,17 @@ export default function PortalApp({ token }) {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const chatRef = useRef(null);
+
+  const fetchDetail = useCallback(async () => {
+    if (!detailId || !token) return null;
+    return portalFetch(token, `/api/public/maintenance-detail?id=${detailId}`);
+  }, [detailId, token]);
+
+  const { chatRef, scrollToBottom, pollNow } = useMaintenanceChatPoll({
+    enabled: !!detailId && !!detail && !detailLoading,
+    fetchDetail,
+    onUpdate: setDetail,
+  });
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -62,17 +73,20 @@ export default function PortalApp({ token }) {
   useEffect(() => { if (token) loadDashboard(); }, [token, loadDashboard]);
 
   useEffect(() => {
-    if (!detailId || !token) return;
+    if (!detailId || !token) return undefined;
+    let cancelled = false;
     setDetailLoading(true);
     portalFetch(token, `/api/public/maintenance-detail?id=${detailId}`)
-      .then(setDetail)
-      .catch((e) => setError(e.message))
-      .finally(() => setDetailLoading(false));
-  }, [detailId, token]);
-
-  useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
-  }, [detail?.messages]);
+      .then((d) => {
+        if (!cancelled) {
+          setDetail(d);
+          requestAnimationFrame(() => scrollToBottom(true));
+        }
+      })
+      .catch((e) => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setDetailLoading(false); });
+    return () => { cancelled = true; };
+  }, [detailId, token, scrollToBottom]);
 
   async function handleNewRequest(e) {
     e.preventDefault();
@@ -103,8 +117,8 @@ export default function PortalApp({ token }) {
         body: JSON.stringify({ request_id: detailId, message: message.trim() }),
       });
       setMessage('');
-      const d = await portalFetch(token, `/api/public/maintenance-detail?id=${detailId}`);
-      setDetail(d);
+      await pollNow();
+      scrollToBottom(true);
     } catch (e) {
       setError(e.message);
     } finally {
