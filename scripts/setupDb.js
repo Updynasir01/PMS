@@ -38,6 +38,13 @@ async function setup() {
         national_id VARCHAR(50),
         address VARCHAR(200),
         notes TEXT,
+        plan VARCHAR(20) DEFAULT 'starter',
+        plan_status VARCHAR(20) DEFAULT 'trial',
+        trial_start DATE DEFAULT CURRENT_DATE,
+        trial_end DATE DEFAULT (CURRENT_DATE + 60),
+        paid_until DATE,
+        max_units INTEGER DEFAULT 10,
+        monthly_fee NUMERIC(10,2) DEFAULT 19,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
@@ -173,6 +180,14 @@ async function setup() {
       CREATE INDEX IF NOT EXISTS idx_leases_tenant ON leases(tenant_id);
 
       ALTER TABLE units ADD COLUMN IF NOT EXISTS qr_token VARCHAR(64) UNIQUE;
+
+      ALTER TABLE owners ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 'starter';
+      ALTER TABLE owners ADD COLUMN IF NOT EXISTS plan_status VARCHAR(20) DEFAULT 'trial';
+      ALTER TABLE owners ADD COLUMN IF NOT EXISTS trial_start DATE DEFAULT CURRENT_DATE;
+      ALTER TABLE owners ADD COLUMN IF NOT EXISTS trial_end DATE DEFAULT (CURRENT_DATE + 60);
+      ALTER TABLE owners ADD COLUMN IF NOT EXISTS paid_until DATE;
+      ALTER TABLE owners ADD COLUMN IF NOT EXISTS max_units INTEGER DEFAULT 10;
+      ALTER TABLE owners ADD COLUMN IF NOT EXISTS monthly_fee NUMERIC(10,2) DEFAULT 19;
     `);
 
     await client.query('COMMIT');

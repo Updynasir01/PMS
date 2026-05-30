@@ -76,6 +76,14 @@ const statusStyles = {
   vacant: 'bg-status-amber-dim text-status-amber border-status-amber/20',
   maintenance: 'bg-status-red-dim text-status-red border-status-red/20',
   active: 'bg-status-green-dim text-status-green border-status-green/20',
+  trial: 'bg-status-amber-dim text-status-amber border-status-amber/20',
+  expired: 'bg-status-red-dim text-status-red border-status-red/20',
+  suspended: 'bg-surface text-text-3 border-border',
+  starter: 'bg-status-blue-dim text-status-blue border-status-blue/20',
+  basic: 'bg-accent-dim text-accent border-accent/25',
+  professional: 'bg-status-green-dim text-status-green border-status-green/20',
+  premium: 'bg-status-amber-dim text-status-amber border-status-amber/20',
+  enterprise: 'bg-status-red-dim text-status-red border-status-red/20',
   low: 'bg-surface text-text-3 border-border',
   medium: 'bg-status-amber-dim text-status-amber border-status-amber/20',
   high: 'bg-status-red-dim text-status-red border-status-red/20',
@@ -85,19 +93,36 @@ const statusLabels = {
   paid:'Paid', pending:'Pending', overdue:'Overdue',
   in_progress:'In Progress', completed:'Completed',
   occupied:'Occupied', vacant:'Vacant', maintenance:'Maintenance',
-  active:'Active', low:'Low', medium:'Medium', high:'High',
+  active:'Active', trial:'Trial', expired:'Expired', suspended:'Suspended',
+  starter:'Starter', basic:'Basic', professional:'Professional', premium:'Premium', enterprise:'Enterprise',
+  low:'Low', medium:'Medium', high:'High',
 };
 
 const pulseStatuses = new Set(['paid', 'occupied', 'active', 'completed']);
 
-export function Badge({ status, className = '' }) {
-  const pulse = pulseStatuses.has(status);
+export function Badge({ status, className = '', compact = false }) {
+  const pulse = !compact && pulseStatuses.has(status);
+  const sizeClass = compact
+    ? 'gap-1 px-2 py-0.5 text-[10px] font-medium normal-case tracking-normal'
+    : 'gap-1.5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide';
+  const dotClass = compact ? 'w-1 h-1' : 'w-1.5 h-1.5';
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-pill text-[11px] font-semibold uppercase tracking-wide border-[0.5px] ${statusStyles[status] || 'bg-surface text-text-3 border-border'} ${className}`}>
-      <span className={`w-1.5 h-1.5 rounded-full bg-current ${pulse ? 'pulse-dot' : 'opacity-70'}`} />
+    <span className={`inline-flex items-center rounded-pill border-[0.5px] ${sizeClass} ${statusStyles[status] || 'bg-surface text-text-3 border-border'} ${className}`}>
+      <span className={`${dotClass} rounded-full bg-current shrink-0 ${pulse ? 'pulse-dot' : 'opacity-70'}`} />
       {statusLabels[status] || status}
     </span>
   );
+}
+
+export function PlanBadge({ plan, className = '', compact = false }) {
+  const key = (plan || 'starter').toLowerCase();
+  return <Badge status={statusStyles[key] ? key : 'starter'} className={className} compact={compact} />;
+}
+
+export function PlanStatusBadge({ status, className = '', compact = false }) {
+  const key = (status || 'trial').toLowerCase();
+  const map = { trial: 'trial', active: 'active', expired: 'expired', suspended: 'suspended' };
+  return <Badge status={map[key] || 'trial'} className={className} compact={compact} />;
 }
 
 // ── Card ──────────────────────────────────────────────

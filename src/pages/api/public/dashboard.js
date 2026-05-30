@@ -1,7 +1,6 @@
 import { withErrorHandler } from '../../../lib/api';
 import { resolveQrToken, getPortalDashboard } from '../../../lib/qrPortal';
 
-/** Legacy endpoint — returns full portal dashboard (same as /api/public/dashboard) */
 export default withErrorHandler(async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -11,6 +10,5 @@ export default withErrorHandler(async function handler(req, res) {
   const ctx = await resolveQrToken(token);
   if (!ctx) return res.status(404).json({ error: 'Unit not found' });
 
-  const dash = await getPortalDashboard(ctx);
-  res.json(dash);
+  res.json(await getPortalDashboard(ctx));
 });

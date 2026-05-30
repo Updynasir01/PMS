@@ -378,7 +378,8 @@ export default function PropertiesPage() {
                   <img src={qrDataUrl} alt={`QR code for unit ${qrUnit.unit_number}`} width={280} height={280} className="block" />
                 ) : null}
               </div>
-              <p className="text-[13px] text-text-3">Stick this inside unit {qrUnit.unit_number}</p>
+              <p className="text-[13px] text-text-3">Tenants scan for full portal — payments, maintenance & chat. No login needed.</p>
+              <p className="text-[12px] text-text-3 mt-1">Stick inside unit {qrUnit.unit_number}</p>
             </div>
           )}
         </Modal>

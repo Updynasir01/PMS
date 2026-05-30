@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { query, queryOne, execute } from '../../../lib/db';
-import { requireRole, getOwnerProfileId } from '../../../lib/auth';
+import { requireRole } from '../../../lib/auth';
 import { withErrorHandler, logActivity, sanitize } from '../../../lib/api';
+import { getPlan, computeTrialEnd, nextPlanKey, PLAN_KEYS } from '../../../lib/plans';
 
 export default withErrorHandler(async function handler(req, res) {
   const user = await requireRole(req, 'superadmin');
@@ -20,6 +21,7 @@ export default withErrorHandler(async function handler(req, res) {
     },
     PATCH: {
       'owners-toggle': () => toggleOwner(req, res, user),
+      'owners-plan': () => updateOwnerPlan(req, res, user),
       'payments-update': () => updatePayment(req, res, user),
     },
   };
@@ -105,7 +107,7 @@ async function getOwners(res) {
   const owners = await query(`
     SELECT o.*, u.full_name, u.username, u.phone, u.email, u.is_active, u.created_at as user_created,
       COUNT(DISTINCT p.id) as property_count,
-      COUNT(DISTINCT un.id) as unit_count
+      COUNT(DISTINCT un.id)::int as unit_count
     FROM owners o
     JOIN users u ON o.user_id=u.id
     LEFT JOIN properties p ON p.owner_id=o.id
@@ -117,10 +119,20 @@ async function getOwners(res) {
 }
 
 async function createOwner(req, res, adminUser) {
-  const { username, password, full_name, phone, email, company_name, address } = req.body || {};
+  const {
+    username, password, full_name, phone, email, company_name, address,
+    plan = 'starter', trial_days = 60,
+  } = req.body || {};
   if (!username || !password || !full_name) {
     return res.status(400).json({ error: 'Username, password and full name are required' });
   }
+
+  const planKey = PLAN_KEYS.includes(plan) ? plan : 'starter';
+  const planDef = getPlan(planKey);
+  const trialDays = Number(trial_days);
+  const hasTrial = trialDays > 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const trialEnd = hasTrial ? computeTrialEnd(trialDays) : null;
 
   const existing = await queryOne('SELECT id FROM users WHERE username=$1', [username.toLowerCase().trim()]);
   if (existing) return res.status(409).json({ error: 'Username already taken' });
@@ -135,13 +147,111 @@ async function createOwner(req, res, adminUser) {
   );
 
   const { rows: [newOwner] } = await execute(
-    'INSERT INTO owners (user_id,company_name,address) VALUES ($1,$2,$3) RETURNING id',
-    [newUser.id, company_name ? sanitize(company_name.trim()) : null,
-     address ? sanitize(address.trim()) : null]
+    `INSERT INTO owners (
+       user_id, company_name, address, plan, plan_status,
+       trial_start, trial_end, max_units, monthly_fee
+     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+    [
+      newUser.id,
+      company_name ? sanitize(company_name.trim()) : null,
+      address ? sanitize(address.trim()) : null,
+      planKey,
+      hasTrial ? 'trial' : 'active',
+      hasTrial ? today : null,
+      trialEnd,
+      planDef.max_units,
+      planDef.monthly_fee,
+    ]
   );
 
-  await logActivity(adminUser.id, 'create', 'owner', newOwner.id, `Created owner: ${full_name}`);
+  await logActivity(adminUser.id, 'create', 'owner', newOwner.id,
+    `Created owner: ${full_name} (${planKey}${hasTrial ? `, ${trialDays}d trial` : ''})`);
   res.status(201).json({ success: true, ownerId: newOwner.id });
+}
+
+async function updateOwnerPlan(req, res, adminUser) {
+  const { id, action, plan, days = 30, months = 1 } = req.body || {};
+  if (!id || !action) return res.status(400).json({ error: 'Owner id and action are required' });
+
+  const owner = await queryOne(
+    `SELECT o.*, u.full_name,
+      (SELECT COUNT(*)::int FROM units u2
+       JOIN properties p ON u2.property_id = p.id WHERE p.owner_id = o.id) AS unit_count
+     FROM owners o JOIN users u ON o.user_id = u.id WHERE o.id = $1`,
+    [id]
+  );
+  if (!owner) return res.status(404).json({ error: 'Owner not found' });
+
+  const today = new Date().toISOString().slice(0, 10);
+  let desc = '';
+
+  switch (action) {
+    case 'change_plan':
+    case 'upgrade': {
+      const planKey = action === 'upgrade'
+        ? (nextPlanKey(owner.plan) || owner.plan)
+        : (PLAN_KEYS.includes(plan) ? plan : owner.plan);
+      const planDef = getPlan(planKey);
+      if (owner.unit_count > planDef.max_units) {
+        return res.status(400).json({
+          error: `Cannot switch to ${planDef.label}: owner has ${owner.unit_count} units (limit ${planDef.max_units}).`,
+        });
+      }
+      await execute(
+        'UPDATE owners SET plan=$1, max_units=$2, monthly_fee=$3 WHERE id=$4',
+        [planKey, planDef.max_units, planDef.monthly_fee, id]
+      );
+      desc = `${action === 'upgrade' ? 'Upgraded' : 'Changed'} plan to ${planKey}`;
+      break;
+    }
+    case 'extend_trial': {
+      const addDays = Math.max(1, Number(days) || 30);
+      const base = owner.trial_end && String(owner.trial_end).slice(0, 10) >= today
+        ? String(owner.trial_end).slice(0, 10) : today;
+      const endFromBase = new Date(base + 'T12:00:00');
+      endFromBase.setDate(endFromBase.getDate() + addDays);
+      const trialEnd = endFromBase.toISOString().slice(0, 10);
+      await execute(
+        `UPDATE owners SET plan_status='trial', trial_start=COALESCE(trial_start, $1::date),
+         trial_end=$2, paid_until=NULL WHERE id=$3`,
+        [today, trialEnd, id]
+      );
+      desc = `Extended trial by ${addDays} days (ends ${trialEnd})`;
+      break;
+    }
+    case 'mark_paid': {
+      const m = Math.max(1, Number(months) || 1);
+      const paidUntil = new Date();
+      paidUntil.setMonth(paidUntil.getMonth() + m);
+      const paidStr = paidUntil.toISOString().slice(0, 10);
+      await execute(
+        `UPDATE owners SET plan_status='active', paid_until=$1, trial_end=NULL WHERE id=$2`,
+        [paidStr, id]
+      );
+      desc = `Marked paid until ${paidStr}`;
+      break;
+    }
+    case 'suspend':
+      await execute("UPDATE owners SET plan_status='suspended' WHERE id=$1", [id]);
+      desc = 'Suspended account';
+      break;
+    case 'activate':
+      await execute("UPDATE owners SET plan_status='active' WHERE id=$1", [id]);
+      desc = 'Reactivated account';
+      break;
+    default:
+      return res.status(400).json({ error: 'Unknown action' });
+  }
+
+  await logActivity(adminUser.id, 'owner_plan', 'owner', id, `${owner.full_name}: ${desc}`);
+  const updated = await queryOne(
+    `SELECT o.*, u.full_name, u.username, u.phone, u.email, u.is_active,
+      (SELECT COUNT(*)::int FROM units u2
+       JOIN properties p ON u2.property_id = p.id WHERE p.owner_id = o.id) AS unit_count
+     FROM owners o JOIN users u ON o.user_id = u.id WHERE o.id = $1`,
+    [id]
+  );
+  res.json({ success: true, owner: updated });
 }
 
 async function toggleOwner(req, res, adminUser) {

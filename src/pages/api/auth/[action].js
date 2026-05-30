@@ -27,6 +27,18 @@ async function login(req, res) {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'Invalid username or password' });
 
+  if (user.role === 'owner') {
+    const owner = await queryOne(
+      'SELECT plan_status FROM owners WHERE user_id = $1',
+      [user.id]
+    );
+    if (owner?.plan_status === 'suspended') {
+      return res.status(403).json({
+        error: 'Your account is suspended. Contact PropSync support.',
+      });
+    }
+  }
+
   const token = signToken({ userId: user.id, role: user.role });
   setAuthCookie(res, token);
 

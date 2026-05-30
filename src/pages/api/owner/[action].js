@@ -3,6 +3,7 @@ import { query, queryOne, execute } from '../../../lib/db';
 import { requireRole, getOwnerProfileId } from '../../../lib/auth';
 import { withErrorHandler, logActivity, sanitize } from '../../../lib/api';
 import { generateQrToken } from '../../../lib/qrToken';
+import { assertOwnerCanAddUnit } from '../../../lib/ownerLimits';
 
 export default withErrorHandler(async function handler(req, res) {
   const user = await requireRole(req, 'superadmin', 'owner');
@@ -164,6 +165,9 @@ async function createUnit(req, res, user, ownerId) {
   }
   const prop = await queryOne('SELECT id FROM properties WHERE id=$1 AND owner_id=$2', [property_id, ownerId]);
   if (!prop) return res.status(404).json({ error: 'Property not found' });
+
+  const limit = await assertOwnerCanAddUnit(ownerId);
+  if (!limit.ok) return res.status(403).json({ error: limit.error });
 
   try {
     const qr_token = generateQrToken();

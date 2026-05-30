@@ -9,7 +9,8 @@
     "start": "next start",
     "db:setup": "node scripts/setupDb.js",
     "db:seed": "node scripts/seed.js",
-    "db:migrate-qr": "node scripts/migrateQrTokens.js"
+    "db:migrate-qr": "node scripts/migrateQrTokens.js",
+    "db:migrate-plans": "node scripts/migrateOwnerPlans.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
