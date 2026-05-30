@@ -9,7 +9,7 @@ const bcrypt = require('bcryptjs');
 const dbUrl = process.env.DATABASE_URL || '';
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: dbUrl.includes('supabase.com') ? { rejectUnauthorized: false } : false,
+  ssl: /supabase\.com|neon\.tech|sslmode=require/.test(dbUrl) ? { rejectUnauthorized: false } : false,
 });
 
 async function seed() {

@@ -6,7 +6,11 @@ let pool;
 export function getDb() {
   if (!pool) {
     const url = process.env.DATABASE_URL || '';
-    const useSsl = url.includes('supabase.com') || process.env.NODE_ENV === 'production';
+    const useSsl =
+      url.includes('supabase.com') ||
+      url.includes('neon.tech') ||
+      url.includes('sslmode=require') ||
+      process.env.NODE_ENV === 'production';
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: useSsl ? { rejectUnauthorized: false } : false,
