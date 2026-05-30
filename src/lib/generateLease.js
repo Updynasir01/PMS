@@ -197,6 +197,40 @@ function clauseList(doc, y, clauses) {
   return y + 4;
 }
 
+/** Build signature map from lease_documents API row (include_pdf=1). */
+export function leaseSignaturesFromDocument(doc) {
+  if (!doc) return {};
+  const sigs = {};
+  if (doc.landlord_signature) {
+    sigs.landlord = { image: doc.landlord_signature, signedAt: doc.landlord_signed_at };
+  }
+  if (doc.tenant_signature) {
+    sigs.tenant = { image: doc.tenant_signature, signedAt: doc.tenant_signed_at };
+  }
+  return sigs;
+}
+
+function embedSignatureImage(doc, imageData, x, y, w, h) {
+  if (!imageData) return false;
+  const attempts = [];
+  if (imageData.includes('base64,')) {
+    attempts.push(imageData.split('base64,')[1]);
+    attempts.push(imageData);
+  } else {
+    attempts.push(imageData);
+    attempts.push(`data:image/png;base64,${imageData}`);
+  }
+  for (const src of attempts) {
+    try {
+      doc.addImage(src, 'PNG', x, y, w, h);
+      return true;
+    } catch {
+      /* try next format */
+    }
+  }
+  return false;
+}
+
 function signatureBlock(doc, y, role, name, sig) {
   const blockW = (CONTENT_W - 24) / 3;
   const x = M + (['Landlord', 'Tenant', 'Witness'].indexOf(role)) * (blockW + 12);
@@ -215,9 +249,8 @@ function signatureBlock(doc, y, role, name, sig) {
   doc.text(nameLines, x + 10, y + 72);
 
   if (sig?.image) {
-    try {
-      doc.addImage(sig.image, 'PNG', x + 8, y + 24, blockW - 16, 32);
-    } catch {
+    const drawn = embedSignatureImage(doc, sig.image, x + 8, y + 22, blockW - 16, 34);
+    if (!drawn) {
       doc.setDrawColor(INK.r, INK.g, INK.b);
       doc.line(x + 10, y + 40, x + blockW - 10, y + 40);
     }

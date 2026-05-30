@@ -102,23 +102,23 @@ export default withErrorHandler(async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid party' });
       }
 
-      const updated = await getDocumentById(id, ownerId);
-      const status = computeStatus(updated);
+      const status = computeStatus(await getDocumentById(id, ownerId));
       await execute('UPDATE lease_documents SET status = $1, updated_at = NOW() WHERE id = $2', [status, id]);
 
-      const payload = await getLeasePayloadForTenant(updated.tenant_id, ownerId);
+      const fresh = await getDocumentById(id, ownerId);
+      const payload = await getLeasePayloadForTenant(fresh.tenant_id, ownerId);
       return res.json({
         success: true,
         status,
         fully_signed: status === 'fully_signed',
-        document: formatDocumentResponse({ ...updated, status }),
+        document: formatDocumentResponse({ ...fresh, status }),
         payload,
         signatures: {
-          landlord: updated.landlord_signature
-            ? { image: updated.landlord_signature, signedAt: updated.landlord_signed_at }
+          landlord: fresh.landlord_signature
+            ? { image: fresh.landlord_signature, signedAt: fresh.landlord_signed_at }
             : null,
-          tenant: updated.tenant_signature
-            ? { image: updated.tenant_signature, signedAt: updated.tenant_signed_at }
+          tenant: fresh.tenant_signature
+            ? { image: fresh.tenant_signature, signedAt: fresh.tenant_signed_at }
             : null,
         },
       });

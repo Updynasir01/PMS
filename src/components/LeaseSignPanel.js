@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button, Badge, Spinner, toast, apiFetch } from './ui';
 import SignaturePad from './SignaturePad';
-import { buildLeasePdf, downloadPdfDataUrl } from '../lib/generateLease';
+import { buildLeasePdf, downloadPdfDataUrl, leaseSignaturesFromDocument } from '../lib/generateLease';
 
 const STATUS_LABELS = {
   pending_signatures: { text: 'Awaiting signatures', status: 'pending' },
@@ -69,6 +69,22 @@ export default function LeaseSignPanel({ tenantId, role, apiBase, qrToken, fetch
     }
   }
 
+  async function uploadPdfWithSignatures(documentId, payload, signatureMap) {
+    const sigs = {
+      landlord: signatureMap?.landlord || undefined,
+      tenant: signatureMap?.tenant || undefined,
+    };
+    const pdfDoc = await buildLeasePdf(payload, sigs);
+    await request(base, {
+      method: 'PATCH',
+      body: {
+        id: documentId,
+        document_pdf: pdfDoc.output('datauristring'),
+        token: qrToken,
+      },
+    });
+  }
+
   async function handleSign() {
     if (!sigImage) return toast.error('Please draw your signature first');
     setSaving(true);
@@ -82,23 +98,12 @@ export default function LeaseSignPanel({ tenantId, role, apiBase, qrToken, fetch
           token: qrToken,
         },
       });
-      if (res.fully_signed && res.payload && res.signatures) {
-        const pdfDoc = await buildLeasePdf(res.payload, {
-          landlord: res.signatures.landlord || undefined,
-          tenant: res.signatures.tenant || undefined,
-        });
-        await request(base, {
-          method: 'PATCH',
-          body: {
-            id: doc.id,
-            document_pdf: pdfDoc.output('datauristring'),
-            token: qrToken,
-          },
-        });
-        toast.success('Lease fully signed & saved to cloud');
-      } else {
-        toast.success('Signature saved to cloud');
+      if (res.payload && res.signatures) {
+        await uploadPdfWithSignatures(doc.id, res.payload, res.signatures);
       }
+      toast.success(
+        res.fully_signed ? 'Lease fully signed & saved to cloud' : 'Signature saved to cloud'
+      );
       setSigImage(null);
       load();
     } catch (e) {
@@ -111,19 +116,21 @@ export default function LeaseSignPanel({ tenantId, role, apiBase, qrToken, fetch
   async function handleDownload() {
     try {
       const res = await request(`${base}${query}&include_pdf=1`);
+      const sigs = leaseSignaturesFromDocument(res.document);
+      const hasSig = sigs.landlord || sigs.tenant;
+
+      // Stored PDF is the unsigned draft from "Create lease" — rebuild when signatures exist
+      if (hasSig && res.payload) {
+        const pdf = await buildLeasePdf(res.payload, sigs);
+        pdf.save(`lease-${res.document?.contract_ref || 'draft'}.pdf`);
+        return;
+      }
       if (res.document?.document_pdf) {
         downloadPdfDataUrl(
           res.document.document_pdf,
           `lease-${res.document.contract_ref}.pdf`
         );
         return;
-      }
-      const sigs = {};
-      if (res.document?.landlord_signature) {
-        sigs.landlord = { image: res.document.landlord_signature, signedAt: res.document.landlord_signed_at };
-      }
-      if (res.document?.tenant_signature) {
-        sigs.tenant = { image: res.document.tenant_signature, signedAt: res.document.tenant_signed_at };
       }
       const pdf = await buildLeasePdf(res.payload, sigs);
       pdf.save(`lease-${res.document?.contract_ref || 'draft'}.pdf`);

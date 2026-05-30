@@ -60,23 +60,25 @@ export default withErrorHandler(async function handler(req, res) {
       [signature_image, now, id]
     );
 
-    const updated = await queryOne('SELECT * FROM lease_documents WHERE id = $1', [id]);
-    const status = computeStatus(updated);
-    await execute('UPDATE lease_documents SET status = $1 WHERE id = $2', [status, id]);
+    const status = computeStatus(
+      await queryOne('SELECT * FROM lease_documents WHERE id = $1', [id])
+    );
+    await execute('UPDATE lease_documents SET status = $1, updated_at = NOW() WHERE id = $2', [status, id]);
 
+    const fresh = await queryOne('SELECT * FROM lease_documents WHERE id = $1', [id]);
     const payload = await getLeasePayloadByQrToken(token);
     return res.json({
       success: true,
       status,
       fully_signed: status === 'fully_signed',
-      document: formatDocumentResponse({ ...updated, status }),
+      document: formatDocumentResponse({ ...fresh, status }),
       payload,
       signatures: {
-        landlord: updated.landlord_signature
-          ? { image: updated.landlord_signature, signedAt: updated.landlord_signed_at }
+        landlord: fresh.landlord_signature
+          ? { image: fresh.landlord_signature, signedAt: fresh.landlord_signed_at }
           : null,
-        tenant: updated.tenant_signature
-          ? { image: updated.tenant_signature, signedAt: updated.tenant_signed_at }
+        tenant: fresh.tenant_signature
+          ? { image: fresh.tenant_signature, signedAt: fresh.tenant_signed_at }
           : null,
       },
     });
