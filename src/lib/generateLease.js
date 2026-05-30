@@ -232,8 +232,8 @@ function embedSignatureImage(doc, imageData, x, y, w, h) {
 }
 
 function signatureBlock(doc, y, role, name, sig) {
-  const blockW = (CONTENT_W - 24) / 3;
-  const x = M + (['Landlord', 'Tenant', 'Witness'].indexOf(role)) * (blockW + 12);
+  const blockW = (CONTENT_W - 12) / 2;
+  const x = M + (role === 'Tenant' ? blockW + 12 : 0);
 
   doc.setDrawColor(220, 220, 228);
   doc.setLineWidth(0.6);
@@ -370,7 +370,6 @@ export async function buildLeasePdf(data, signatures = {}) {
   y += 20;
   signatureBlock(doc, y, 'Landlord', data.landlord?.full_name, signatures.landlord);
   signatureBlock(doc, y, 'Tenant', data.tenant?.full_name, signatures.tenant);
-  signatureBlock(doc, y, 'Witness', '');
 
   const totalPages = doc.getNumberOfPages();
   for (let p = 1; p <= totalPages; p++) {
