@@ -24,15 +24,15 @@ export default function OwnerDashboard() {
       <PageHeader title="My Dashboard" subtitle={`${properties.length} properties · ${fmt.month(fmt.currentMonth())}`} />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Collected" value={fmt.usd(revenue.collected)} color="green"
-          icon={<span className="text-lg font-bold">$</span>} />
-        <StatCard label="Pending" value={fmt.usd(revenue.pending)} color="amber"
-          icon={<span className="text-lg">⏳</span>} />
-        <StatCard label="Overdue" value={fmt.usd(revenue.overdue)} color="red"
-          icon={<span className="text-lg">⚠</span>} />
-        <StatCard label="Occupancy" value={`${occupancyRate}%`} sub={`${occupiedUnits}/${totalUnits} units`} color="purple"
-          icon={<span className="text-lg">▦</span>} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        <StatCard size="lg" label="Collected" value={fmt.usd(revenue.collected)} color="green"
+          icon={<span className="text-2xl font-bold">$</span>} />
+        <StatCard size="lg" label="Pending" value={fmt.usd(revenue.pending)} color="amber"
+          icon={<span className="text-2xl">⏳</span>} />
+        <StatCard size="lg" label="Overdue" value={fmt.usd(revenue.overdue)} color="red"
+          icon={<span className="text-2xl">⚠</span>} />
+        <StatCard size="lg" label="Occupancy" value={`${occupancyRate}%`} sub={`${occupiedUnits}/${totalUnits} units`} color="purple"
+          icon={<span className="text-2xl">▦</span>} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

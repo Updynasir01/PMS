@@ -125,7 +125,26 @@ export function PageHeader({ title, subtitle, action }) {
 }
 
 // ── Stat Card ─────────────────────────────────────────
-export function StatCard({ label, value, sub, icon, color = 'purple' }) {
+const statSizes = {
+  md: {
+    card: 'min-h-[120px]',
+    bar: 'h-[2px]',
+    icon: '!w-9 !h-9 mb-4',
+    value: 'text-[32px] mb-1',
+    label: 'text-[11px]',
+    sub: 'text-[13px] mt-2',
+  },
+  lg: {
+    card: 'min-h-[160px] !py-6 !px-6',
+    bar: 'h-[3px]',
+    icon: '!w-12 !h-12 mb-5 rounded-[12px]',
+    value: 'text-[40px] sm:text-[48px] mb-2',
+    label: 'text-[12px]',
+    sub: 'text-[14px] mt-3',
+  },
+};
+
+export function StatCard({ label, value, sub, icon, color = 'purple', size = 'lg' }) {
   const barColors = {
     purple: 'bg-accent',
     green: 'bg-status-green',
@@ -135,15 +154,16 @@ export function StatCard({ label, value, sub, icon, color = 'purple' }) {
   };
   const tintMap = { purple: 'purple', green: 'green', amber: 'amber', red: 'red', blue: 'blue' };
   const accentValue = color === 'purple';
+  const s = statSizes[size] || statSizes.lg;
   return (
-    <Card className="relative overflow-hidden group">
-      <div className={`absolute top-0 left-0 right-0 h-[2px] ${barColors[color] || barColors.purple}`} />
-      <IconBox tint={tintMap[color] || 'purple'} className="mb-4 group-hover:scale-105 transition-transform duration-200">
+    <Card className={`relative overflow-hidden group ${s.card}`}>
+      <div className={`absolute top-0 left-0 right-0 ${s.bar} ${barColors[color] || barColors.purple}`} />
+      <IconBox tint={tintMap[color] || 'purple'} className={`${s.icon} group-hover:scale-105 transition-transform duration-200`}>
         {icon}
       </IconBox>
-      <div className={`font-display text-[32px] leading-none mb-1 ${accentValue ? 'text-accent' : 'text-text-1'}`}>{value}</div>
-      <div className="label-ui text-text-2 normal-case">{label}</div>
-      {sub && <div className="text-[13px] text-text-3 mt-2">{sub}</div>}
+      <div className={`font-display leading-none ${s.value} ${accentValue ? 'text-accent' : 'text-text-1'}`}>{value}</div>
+      <div className={`label-ui text-text-2 normal-case ${s.label}`}>{label}</div>
+      {sub && <div className={`text-text-3 ${s.sub}`}>{sub}</div>}
     </Card>
   );
 }

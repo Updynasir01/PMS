@@ -22,29 +22,29 @@ export default function AdminDashboard() {
       <PageHeader title="Platform Overview" subtitle={fmt.month(fmt.currentMonth())} />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Owners" value={totalOwners} color="blue"
-          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        <StatCard size="lg" label="Owners" value={totalOwners} color="blue"
+          icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
         />
-        <StatCard label="Properties" value={totalProperties} sub={`${totalUnits} total units`} color="purple"
-          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
+        <StatCard size="lg" label="Properties" value={totalProperties} sub={`${totalUnits} total units`} color="purple"
+          icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
         />
-        <StatCard label="Occupied Units" value={occupiedUnits} sub={`${vacantUnits} vacant · ${occupancyRate}%`} color="green"
-          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>}
+        <StatCard size="lg" label="Occupied Units" value={occupiedUnits} sub={`${vacantUnits} vacant · ${occupancyRate}%`} color="green"
+          icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>}
         />
-        <StatCard label="Open Maintenance" value={openMaintenance} color="amber"
-          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
+        <StatCard size="lg" label="Open Maintenance" value={openMaintenance} color="amber"
+          icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
         />
       </div>
 
       {/* Revenue */}
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Collected" value={fmt.usd(revenue.collected)} color="green"
-          icon={<span className="text-lg">✓</span>} />
-        <StatCard label="Pending" value={fmt.usd(revenue.pending)} color="amber"
-          icon={<span className="text-lg">⏳</span>} />
-        <StatCard label="Overdue" value={fmt.usd(revenue.overdue)} color="red"
-          icon={<span className="text-lg">⚠</span>} />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <StatCard size="lg" label="Collected" value={fmt.usd(revenue.collected)} color="green"
+          icon={<span className="text-2xl">✓</span>} />
+        <StatCard size="lg" label="Pending" value={fmt.usd(revenue.pending)} color="amber"
+          icon={<span className="text-2xl">⏳</span>} />
+        <StatCard size="lg" label="Overdue" value={fmt.usd(revenue.overdue)} color="red"
+          icon={<span className="text-2xl">⚠</span>} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
