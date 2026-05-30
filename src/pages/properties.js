@@ -4,6 +4,9 @@ import Layout from '../components/layout/Layout';
 import { Card, Badge, Button, Modal, Input, Select, Textarea, Checkbox, EmptyState, Spinner, ProgressBar, fmt, apiFetch, toast, FeaturePill } from '../components/ui';
 import { useAuth } from './_app';
 import Head from 'next/head';
+import UnitPhotosModal from '../components/UnitPhotosModal';
+import MoveInChecklistModal from '../components/MoveInChecklistModal';
+import LeaseSignPanel from '../components/LeaseSignPanel';
 
 const DISTRICTS = ['KM4','Airport Road','Hodan','Wadajir','Hamar Weyne','Abdiaziz','Daynile','Other'];
 const TYPE_ICONS = { apartment:'🏢', villa:'🏡', commercial:'🏪', office:'🏬', mixed:'🏗️' };
@@ -26,6 +29,9 @@ export default function PropertiesPage() {
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [qrLoading, setQrLoading] = useState(false);
   const [generatingQrId, setGeneratingQrId] = useState(null);
+  const [photoUnit, setPhotoUnit] = useState(null);
+  const [checklistCtx, setChecklistCtx] = useState(null);
+  const [leaseTenantId, setLeaseTenantId] = useState(null);
   const [saving, setSaving] = useState(false);
 
   // Forms
@@ -91,9 +97,10 @@ export default function PropertiesPage() {
     }
     setSaving(true);
     try {
-      await apiFetch('/api/owner/tenants', { method: 'POST', body: tenantForm });
+      const res = await apiFetch('/api/owner/tenants', { method: 'POST', body: tenantForm });
       toast.success(`${full_name} registered successfully!`);
       setAddTenantOpen(false);
+      setChecklistCtx({ unitId: unit_id, tenantId: res.tenantId });
       setTenantForm({ username:'', password:'', full_name:'', phone:'', email:'', unit_id:'', monthly_rent_usd:'', deposit_usd:'', start_date: new Date().toISOString().slice(0,10), end_date:'', national_id:'', emergency_contact:'' });
       loadUnits(selectedProp.id);
     } catch (e) { toast.error(e.message); }
@@ -261,7 +268,10 @@ export default function PropertiesPage() {
                               ${u.status === 'occupied' ? 'border-l-2 border-l-green-500 border-border bg-surface'
                               : u.status === 'vacant' ? 'border-l-2 border-l-amber-500 border-border bg-surface'
                               : 'border-l-2 border-l-red-500 border-border bg-surface'}`}>
-                            <div className="font-display font-bold text-base mb-1">{u.unit_number}</div>
+                            <div className="font-display font-bold text-base mb-1 flex items-center gap-1">
+                              {u.unit_number}
+                              {u.move_in_checklist_done ? <span className="text-status-green text-xs" title="Move-in checklist done">✓</span> : <span className="text-status-amber text-xs" title="No checklist">!</span>}
+                            </div>
                             <div className="font-semibold text-sm text-accent">{fmt.usd(u.monthly_rent_usd)}<span className="text-text-3 text-xs">/mo</span></div>
                             {u.tenant_name
                               ? <div className="text-xs text-text-3 mt-1 truncate">👤 {u.tenant_name}</div>
@@ -273,8 +283,9 @@ export default function PropertiesPage() {
                               {u.has_kitchen && <FeaturePill icon="🍳" variant="kitchen">Kitchen</FeaturePill>}
                               <FeaturePill icon="🪑" variant={u.is_furnished ? 'furnished' : 'off'}>{u.is_furnished ? 'Furnished' : 'Unfurnished'}</FeaturePill>
                             </div>
-                            <div className="mt-2 flex items-center justify-between gap-2">
+                            <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
                               <Badge status={u.status} />
+                              <Button size="xs" variant="ghost" onClick={(e) => { e.stopPropagation(); setPhotoUnit(u); }}>Photos</Button>
                               {u.qr_token ? (
                                 <Button size="xs" variant="ghost" onClick={(e) => openQrModal(u, e)}>
                                   QR Code
@@ -415,9 +426,15 @@ export default function PropertiesPage() {
                 </div>
               )}
               <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => setPhotoUnit(selectedUnit)}>Photos</Button>
                 <Button variant="secondary" onClick={(e) => { openQrModal(selectedUnit, e); }}>
                   QR Code
                 </Button>
+                {selectedUnit.tenant_id && (
+                  <Button variant="ghost" onClick={() => setLeaseTenantId(selectedUnit.tenant_id)}>
+                    Lease & sign (cloud)
+                  </Button>
+                )}
                 {selectedUnit.status === 'vacant' && (
                   <Button className="flex-1 justify-center" onClick={() => { setSelectedUnit(null); setTenantForm(f => ({ ...f, unit_id: selectedUnit.id, monthly_rent_usd: selectedUnit.monthly_rent_usd })); setAddTenantOpen(true); }}>
                     Register Tenant for this Unit
@@ -495,6 +512,21 @@ export default function PropertiesPage() {
           </div>
           <Input label="Emergency Contact" value={tenantForm.emergency_contact} onChange={e => setTenantForm(f => ({ ...f, emergency_contact: e.target.value }))} placeholder="Name (relation)" />
         </Modal>
+
+        <UnitPhotosModal unit={photoUnit} open={!!photoUnit} onClose={() => setPhotoUnit(null)} />
+        <Modal open={!!leaseTenantId} onClose={() => setLeaseTenantId(null)} title="Lease agreement" large>
+          {leaseTenantId && <LeaseSignPanel tenantId={leaseTenantId} role="owner" />}
+        </Modal>
+
+        <MoveInChecklistModal
+          open={!!checklistCtx}
+          unitId={checklistCtx?.unitId}
+          tenantId={checklistCtx?.tenantId}
+          onClose={(saved) => {
+            setChecklistCtx(null);
+            if (saved && selectedProp) loadUnits(selectedProp.id);
+          }}
+        />
       </Layout>
     </>
   );

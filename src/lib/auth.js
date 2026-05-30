@@ -79,3 +79,7 @@ export async function getOwnerProfileId(userId) {
 export async function getTenantProfile(userId) {
   return queryOne('SELECT id, unit_id, owner_id FROM tenants WHERE user_id = $1', [userId]);
 }
+
+export async function getCaretakerProfile(userId) {
+  return queryOne('SELECT * FROM caretakers WHERE user_id = $1', [userId]);
+}

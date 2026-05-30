@@ -3,6 +3,8 @@ import {
   Badge, Button, Select, Input, Textarea, Spinner, fmt, FeaturePill, EmptyState, Card,
 } from '../ui';
 import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
+import { downloadReceiptPdf } from '../../lib/generateReceipt';
+import LeaseSignPanel from '../LeaseSignPanel';
 
 const MR_TYPES = [
   { value: 'electricity', label: 'Electricity' },
@@ -274,6 +276,34 @@ export default function PortalApp({ token }) {
             </section>
           )}
 
+          {hasTenant && lease && (
+            <section className="surface-card">
+              <p className="label-ui mb-3">Lease agreement — sign online</p>
+              <p className="text-[12px] text-text-3 mb-4">Draw your signature here; it is saved in PropSync (not only on your phone).</p>
+              <LeaseSignPanel
+                role="tenant"
+                apiBase="/api/public/lease-document"
+                qrToken={token}
+                fetcher={(path, options = {}) => {
+                  const method = options.method || 'GET';
+                  const url = path.includes('token=')
+                    ? path
+                    : `${path}${path.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;
+                  return fetch(url, {
+                    credentials: 'omit',
+                    headers: { 'Content-Type': 'application/json' },
+                    method,
+                    body: options.body ? JSON.stringify(options.body) : undefined,
+                  }).then(async (r) => {
+                    const d = await r.json();
+                    if (!r.ok) throw new Error(d.error || 'Request failed');
+                    return d;
+                  });
+                }}
+              />
+            </section>
+          )}
+
           {hasTenant && (
             <section className="surface-card">
               <p className="label-ui mb-2">This month — {fmt.month(data.currentMonth)}</p>
@@ -335,8 +365,8 @@ export default function PortalApp({ token }) {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="border-b border-border">
-                  {['Month', 'Amount', 'Method', 'Status'].map((h) => (
-                    <th key={h} className="text-left py-2 text-[10px] text-text-3 uppercase">{h}</th>
+                  {['Month', 'Amount', 'Method', 'Status', ''].map((h) => (
+                    <th key={h || 'r'} className="text-left py-2 text-[10px] text-text-3 uppercase">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -347,6 +377,26 @@ export default function PortalApp({ token }) {
                     <td className="py-2 font-semibold">{fmt.usd(p.amount_usd)}</td>
                     <td className="py-2 text-text-3 text-xs">{fmt.payMethod(p.payment_method)}</td>
                     <td className="py-2"><Badge status={p.status} compact /></td>
+                    <td className="py-2">
+                      {p.status === 'paid' && (
+                        <button
+                          type="button"
+                          className="text-xs text-accent"
+                          onClick={() => downloadReceiptPdf({
+                            payment: p,
+                            tenant: { full_name: tenant?.full_name },
+                            property: { name: unit?.property_name || property?.name },
+                            unit: { unit_number: unit?.unit_number },
+                            owner: { full_name: 'Landlord' },
+                            paymentMonthLabel: fmt.month(p.payment_month),
+                            paidDateLabel: p.paid_date ? fmt.date(p.paid_date) : '—',
+                            paymentMethodLabel: fmt.payMethod(p.payment_method),
+                          })}
+                        >
+                          Receipt
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

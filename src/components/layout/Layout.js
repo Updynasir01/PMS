@@ -2,30 +2,41 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../pages/_app';
 import { Avatar, ToastContainer, ThemeToggle, IconBox } from '../ui';
+import { LanguageToggle } from '../ui/LanguageToggle';
+import { useTranslation } from '../../context/LanguageContext';
 
-const navConfig = {
-  superadmin: [
-    { label: 'Dashboard', href: '/', icon: 'grid' },
-    { label: 'Owners', href: '/owners', icon: 'users' },
-    { label: 'Tenants', href: '/tenants', icon: 'user' },
-    { label: 'Payments', href: '/payments', icon: 'wallet' },
-    { label: 'Maintenance', href: '/maintenance', icon: 'wrench' },
-  ],
-  owner: [
-    { label: 'Dashboard', href: '/', icon: 'grid' },
-    { label: 'Properties', href: '/properties', icon: 'building' },
-    { label: 'Tenants', href: '/tenants', icon: 'users' },
-    { label: 'Payments', href: '/payments', icon: 'wallet' },
-    { label: 'Maintenance', href: '/maintenance', icon: 'wrench' },
-  ],
-  tenant: [
-    { label: 'My Home', href: '/', icon: 'home' },
-    { label: 'Payments', href: '/payments', icon: 'wallet' },
-    { label: 'Maintenance', href: '/maintenance', icon: 'wrench' },
-  ],
-};
+function buildNavConfig(t) {
+  return {
+    superadmin: [
+      { label: t.dashboard, href: '/', icon: 'grid' },
+      { label: 'Owners', href: '/owners', icon: 'users' },
+      { label: t.tenants, href: '/tenants', icon: 'user' },
+      { label: t.payments, href: '/payments', icon: 'wallet' },
+      { label: t.maintenance, href: '/maintenance', icon: 'wrench' },
+    ],
+    owner: [
+      { label: t.dashboard, href: '/', icon: 'grid' },
+      { label: t.properties, href: '/properties', icon: 'building' },
+      { label: t.tenants, href: '/tenants', icon: 'users' },
+      { label: t.payments, href: '/payments', icon: 'wallet' },
+      { label: t.maintenance, href: '/maintenance', icon: 'wrench' },
+      { label: t.expenses, href: '/expenses', icon: 'wallet' },
+      { label: t.technicians, href: '/technicians', icon: 'wrench' },
+      { label: t.caretakers, href: '/caretakers', icon: 'users' },
+    ],
+    tenant: [
+      { label: t.myHome, href: '/', icon: 'home' },
+      { label: t.payments, href: '/payments', icon: 'wallet' },
+      { label: t.maintenance, href: '/maintenance', icon: 'wrench' },
+    ],
+    caretaker: [
+      { label: t.dashboard, href: '/', icon: 'grid' },
+      { label: t.maintenance, href: '/maintenance', icon: 'wrench' },
+    ],
+  };
+}
 
-const roleLabel = { superadmin: 'Super Admin', owner: 'Property Owner', tenant: 'Tenant' };
+const roleLabel = { superadmin: 'Super Admin', owner: 'Property Owner', tenant: 'Tenant', caretaker: 'Caretaker' };
 
 function NavIcon({ name }) {
   const icons = {
@@ -48,6 +59,8 @@ export default function Layout({ children, title }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const t = useTranslation();
+  const navConfig = buildNavConfig(t);
 
   if (!user) return null;
   const nav = navConfig[user.role] || [];
@@ -58,7 +71,7 @@ export default function Layout({ children, title }) {
         <div className="font-display text-[28px] leading-none text-text-1">
           Prop<span className="text-accent">Sync</span>
         </div>
-        <p className="label-ui mt-2">Mogadishu · PropMgmt</p>
+        <p className="label-ui mt-2">{t.mogadishuPropertyManagement}</p>
       </div>
 
       <div className="px-4 py-4 border-b-[0.5px] border-border flex items-center gap-3">
@@ -93,8 +106,11 @@ export default function Layout({ children, title }) {
 
       <div className="px-3 py-4 border-t-[0.5px] border-border space-y-2">
         <div className="flex items-center justify-between px-2">
-          <span className="label-ui">Theme</span>
-          <ThemeToggle />
+          <span className="label-ui">{t.language}</span>
+          <div className="flex gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
         </div>
         <button
           onClick={logout}
@@ -105,7 +121,7 @@ export default function Layout({ children, title }) {
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
             </svg>
           </IconBox>
-          Sign Out
+          {t.signOut}
         </button>
       </div>
     </aside>
@@ -141,6 +157,7 @@ export default function Layout({ children, title }) {
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden sm:block label-ui normal-case">@{user.username}</span>
+            <LanguageToggle />
             <div className="lg:hidden">
               <ThemeToggle />
             </div>

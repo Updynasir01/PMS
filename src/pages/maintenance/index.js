@@ -15,6 +15,7 @@ export default function MaintenancePage() {
   const [form, setForm] = useState({ type: 'electricity', title: '', description: '', priority: 'medium' });
 
   const isTenant = user?.role === 'tenant';
+  const isCaretaker = user?.role === 'caretaker';
   const isAdmin = user?.role === 'superadmin';
 
   useEffect(() => { loadRequests(); }, []);
@@ -22,7 +23,10 @@ export default function MaintenancePage() {
   async function loadRequests() {
     setLoading(true);
     try {
-      const endpoint = isAdmin ? '/api/admin/maintenance' : isTenant ? '/api/tenant/maintenance' : '/api/owner/maintenance';
+      const endpoint = isAdmin ? '/api/admin/maintenance'
+        : isTenant ? '/api/tenant/maintenance'
+        : isCaretaker ? '/api/caretaker/maintenance'
+        : '/api/owner/maintenance';
       setRequests(await apiFetch(endpoint));
     } catch (e) { toast.error(e.message); }
     finally { setLoading(false); }

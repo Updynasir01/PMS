@@ -3,6 +3,7 @@ import { useAuth } from './_app';
 import AdminDashboard from '../components/dashboard/AdminDashboard';
 import OwnerDashboard from '../components/dashboard/OwnerDashboard';
 import TenantDashboard from '../components/dashboard/TenantDashboard';
+import CaretakerDashboard from '../components/dashboard/CaretakerDashboard';
 import Layout from '../components/layout/Layout';
 import { Spinner } from '../components/ui';
 import Head from 'next/head';
@@ -15,6 +16,7 @@ export default function HomePage() {
     superadmin: <AdminDashboard />,
     owner: <OwnerDashboard />,
     tenant: <TenantDashboard />,
+    caretaker: <CaretakerDashboard />,
   };
 
   return (

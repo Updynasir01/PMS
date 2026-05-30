@@ -38,6 +38,7 @@ export default withErrorHandler(async function handler(req, res) {
     PATCH: {
       payments: () => updatePayment(req, res, user, ownerId),
       maintenance: () => updateMaintenance(req, res, user, ownerId),
+      'renew-lease': () => renewLease(req, res, user, ownerId),
     },
   };
 
@@ -86,12 +87,54 @@ async function getDashboard(res, ownerId) {
     WHERE t.owner_id=$1 ORDER BY u.full_name
   `, [ownerId, month]);
 
+  const expenseRow = await queryOne(
+    `SELECT COALESCE(SUM(amount_usd), 0) AS total
+     FROM expenses WHERE owner_id = $1 AND to_char(expense_date, 'YYYY-MM') = $2`,
+    [ownerId, month]
+  );
+
+  const leaseAlerts = await query(
+    `SELECT l.id, l.end_date, u.full_name AS tenant_name, un.unit_number, pr.name AS property_name,
+            (l.end_date - CURRENT_DATE) AS days_remaining
+     FROM leases l
+     JOIN tenants t ON l.tenant_id = t.id
+     JOIN users u ON t.user_id = u.id
+     JOIN units un ON l.unit_id = un.id
+     JOIN properties pr ON un.property_id = pr.id
+     WHERE t.owner_id = $1 AND l.status = 'active' AND l.end_date IS NOT NULL
+       AND l.end_date <= CURRENT_DATE + INTERVAL '30 days'
+     ORDER BY l.end_date ASC LIMIT 10`,
+    [ownerId]
+  );
+
+  const collected = +revenue.collected;
+  const totalExpenses = +expenseRow.total;
+
   res.json({
     properties,
-    revenue: { collected: +revenue.collected, pending: +revenue.pending, overdue: +revenue.overdue },
+    revenue: { collected, pending: +revenue.pending, overdue: +revenue.overdue },
+    expenseSummary: { totalExpenses, netProfit: collected - totalExpenses },
+    leaseAlerts: leaseAlerts.map((l) => ({ ...l, days_remaining: Number(l.days_remaining) })),
     pendingMaintenance,
     tenants,
   });
+}
+
+async function renewLease(req, res, user, ownerId) {
+  const { lease_id, end_date } = req.body || {};
+  if (!lease_id || !end_date) return res.status(400).json({ error: 'lease_id and end_date required' });
+
+  const lease = await queryOne(
+    `SELECT l.* FROM leases l
+     JOIN tenants t ON l.tenant_id = t.id
+     WHERE l.id = $1 AND t.owner_id = $2`,
+    [lease_id, ownerId]
+  );
+  if (!lease) return res.status(404).json({ error: 'Lease not found' });
+
+  await execute('UPDATE leases SET end_date = $1, updated_at = NOW() WHERE id = $2', [end_date, lease_id]);
+  await logActivity(user.id, 'renew_lease', 'lease', lease_id, `Lease renewed until ${end_date}`);
+  res.json({ success: true, end_date });
 }
 
 async function getProperties(res, ownerId) {
@@ -127,7 +170,12 @@ async function getUnits(req, res, ownerId) {
   const units = await query(`
     SELECT u.*,
       ten.id as tenant_id, usr.full_name as tenant_name, usr.phone as tenant_phone,
-      (SELECT status FROM payments WHERE unit_id=u.id ORDER BY due_date DESC LIMIT 1) as last_payment_status
+      (SELECT status FROM payments WHERE unit_id=u.id ORDER BY due_date DESC LIMIT 1) as last_payment_status,
+      (SELECT photo_url FROM unit_photos WHERE unit_id=u.id AND is_primary=true LIMIT 1) as primary_photo,
+      EXISTS(
+        SELECT 1 FROM unit_checklists uc
+        WHERE uc.unit_id=u.id AND uc.type='move_in' AND uc.completed_at IS NOT NULL
+      ) as move_in_checklist_done
     FROM units u
     LEFT JOIN tenants ten ON ten.unit_id=u.id
     LEFT JOIN users usr ON ten.user_id=usr.id
@@ -269,7 +317,7 @@ async function createTenant(req, res, user, ownerId) {
 async function getPayments(req, res, ownerId) {
   const { status, month } = req.query;
   let q = `
-    SELECT p.*, u.full_name as tenant_name, un.unit_number, pr.name as property_name
+    SELECT p.*, u.full_name as tenant_name, u.phone as tenant_phone, un.unit_number, pr.name as property_name
     FROM payments p
     JOIN tenants t ON p.tenant_id=t.id
     JOIN users u ON t.user_id=u.id

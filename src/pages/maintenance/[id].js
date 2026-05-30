@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/layout/Layout';
 import { Card, Badge, Button, Select, Input, Spinner, fmt, apiFetch, toast } from '../../components/ui';
+import { generateWhatsAppLink, maintenanceContactMessage } from '../../lib/whatsapp';
 import { useAuth } from '../_app';
 import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
 import Head from 'next/head';
@@ -16,12 +17,18 @@ export default function MaintenanceDetailPage() {
   const [sending, setSending] = useState(false);
   const [updateForm, setUpdateForm] = useState({ status: '', assigned_technician: '' });
   const [updating, setUpdating] = useState(false);
+  const [technicians, setTechnicians] = useState([]);
+  const [waMessage, setWaMessage] = useState('');
 
   const isTenant = user?.role === 'tenant';
+  const isCaretaker = user?.role === 'caretaker';
   const isAdmin = user?.role === 'superadmin';
+  const canManage = !isTenant;
 
   const detailEndpoint = id
-    ? (isTenant ? `/api/tenant/maintenance-detail?id=${id}` : `/api/owner/maintenance-detail?id=${id}`)
+    ? (isTenant ? `/api/tenant/maintenance-detail?id=${id}`
+      : isCaretaker ? `/api/caretaker/maintenance-detail?id=${id}`
+      : `/api/owner/maintenance-detail?id=${id}`)
     : null;
 
   const fetchDetail = useCallback(async () => {
@@ -40,6 +47,14 @@ export default function MaintenanceDetailPage() {
       }));
     },
   });
+
+  useEffect(() => {
+    if (canManage && data?.type) {
+      apiFetch(`/api/owner/technicians?specialty=${data.type}`)
+        .then(setTechnicians)
+        .catch(() => setTechnicians([]));
+    }
+  }, [canManage, data?.type]);
 
   useEffect(() => {
     if (!id) return;
@@ -68,7 +83,9 @@ export default function MaintenanceDetailPage() {
     if (!message.trim()) return;
     setSending(true);
     try {
-      const endpoint = isTenant ? '/api/tenant/maintenance-message' : '/api/owner/maintenance-message';
+      const endpoint = isTenant ? '/api/tenant/maintenance-message'
+        : isCaretaker ? '/api/caretaker/maintenance-message'
+        : '/api/owner/maintenance-message';
       await apiFetch(endpoint, { method: 'POST', body: { request_id: id, message: message.trim() } });
       setMessage('');
       await pollNow();
@@ -80,7 +97,8 @@ export default function MaintenanceDetailPage() {
   async function handleUpdate() {
     setUpdating(true);
     try {
-      await apiFetch('/api/owner/maintenance', { method: 'PATCH', body: { id, ...updateForm } });
+      const patchUrl = isCaretaker ? '/api/caretaker/maintenance' : '/api/owner/maintenance';
+      await apiFetch(patchUrl, { method: 'PATCH', body: { id, ...updateForm } });
       toast.success('Request updated!');
       await pollNow();
     } catch (e) { toast.error(e.message); }
@@ -169,7 +187,7 @@ export default function MaintenanceDetailPage() {
               </Card>
 
               {/* Update Panel — owner/admin only */}
-              {!isTenant && (
+              {canManage && (
                 <Card>
                   <h3 className="font-display font-bold mb-4">Update Request</h3>
                   <Select label="Status" value={updateForm.status} onChange={e => setUpdateForm(f => ({ ...f, status: e.target.value }))}>
@@ -177,12 +195,35 @@ export default function MaintenanceDetailPage() {
                     <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>
                   </Select>
+                  {technicians.length > 0 && (
+                    <Select label="Technician directory" value="" onChange={(e) => {
+                      const tech = technicians.find((x) => String(x.id) === e.target.value);
+                      if (tech) setUpdateForm((f) => ({ ...f, assigned_technician: tech.name }));
+                    }}>
+                      <option value="">— Pick from directory —</option>
+                      {technicians.map((tech) => (
+                        <option key={tech.id} value={tech.id}>{tech.name} ({tech.phone})</option>
+                      ))}
+                    </Select>
+                  )}
                   <Input label="Assign Technician" value={updateForm.assigned_technician}
                     onChange={e => setUpdateForm(f => ({ ...f, assigned_technician: e.target.value }))}
                     placeholder="e.g. Ahmed Electrician" />
                   <Button onClick={handleUpdate} disabled={updating} className="w-full justify-center">
                     {updating ? 'Updating...' : 'Update Status'}
                   </Button>
+                  {data.tenant_phone && (
+                    <>
+                      <Input label="WhatsApp message" value={waMessage} onChange={(e) => setWaMessage(e.target.value)} className="mt-4" />
+                      <a className="block mt-2" href={generateWhatsAppLink(data.tenant_phone, maintenanceContactMessage({
+                        tenantName: data.tenant_name,
+                        title: data.title,
+                        customMessage: waMessage,
+                      })) || '#'} target="_blank" rel="noreferrer">
+                        <Button variant="ghost" className="w-full justify-center">Contact via WhatsApp</Button>
+                      </a>
+                    </>
+                  )}
                 </Card>
               )}
             </div>

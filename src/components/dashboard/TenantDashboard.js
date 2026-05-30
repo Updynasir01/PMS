@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { StatCard, Card, Badge, PageHeader, EmptyState, Spinner, fmt, apiFetch, FeaturePill } from '../ui';
+import LeaseSignPanel from '../LeaseSignPanel';
 
 export default function TenantDashboard() {
   const [data, setData] = useState(null);
@@ -108,6 +109,14 @@ export default function TenantDashboard() {
           )}
         </Card>
       </div>
+
+      {lease && (
+        <Card>
+          <h3 className="font-display font-bold mb-2">Lease agreement</h3>
+          <p className="text-sm text-text-3 mb-4">Sign in the browser — your signature is stored in the cloud. Download the final PDF anytime.</p>
+          <LeaseSignPanel role="tenant" />
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Payment History */}

@@ -3,6 +3,9 @@ import Layout from '../components/layout/Layout';
 import { Card, Badge, Button, Modal, Select, Input, EmptyState, Spinner, fmt, apiFetch, toast } from '../components/ui';
 import { useAuth } from './_app';
 import Head from 'next/head';
+import { downloadReceiptPdf } from '../lib/generateReceipt';
+import { generateWhatsAppLink, rentReminderMessage } from '../lib/whatsapp';
+import { useTranslation } from '../context/LanguageContext';
 
 const METHODS = [
   { value: 'evc_plus', label: 'EVC Plus' },
@@ -13,6 +16,7 @@ const METHODS = [
 ];
 
 export default function PaymentsPage() {
+  const t = useTranslation();
   const { user } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -155,7 +159,36 @@ export default function PaymentsPage() {
                         <td className="px-4 py-3"><Badge status={p.status} /></td>
                         {!isTenant && (
                           <td className="px-4 py-3">
-                            <Button size="xs" variant="secondary" onClick={() => openUpdate(p)}>Update</Button>
+                            <div className="flex flex-wrap gap-1">
+                              <Button size="xs" variant="secondary" onClick={() => openUpdate(p)}>{t.update}</Button>
+                              {p.status === 'paid' && (
+                                <Button size="xs" variant="ghost" onClick={() => downloadReceiptPdf({
+                                  payment: p,
+                                  tenant: { full_name: p.tenant_name },
+                                  property: { name: p.property_name },
+                                  unit: { unit_number: p.unit_number },
+                                  owner: { full_name: user?.full_name },
+                                  paymentMonthLabel: fmt.month(p.payment_month),
+                                  paidDateLabel: p.paid_date ? fmt.date(p.paid_date) : '—',
+                                  paymentMethodLabel: fmt.payMethod(p.payment_method),
+                                })}>{t.downloadReceipt}</Button>
+                              )}
+                              {p.status === 'overdue' && p.tenant_phone && generateWhatsAppLink(p.tenant_phone, rentReminderMessage({
+                                tenantName: p.tenant_name,
+                                month: fmt.month(p.payment_month),
+                                amount: p.amount_usd,
+                                propertyName: p.property_name,
+                              })) && (
+                                <a href={generateWhatsAppLink(p.tenant_phone, rentReminderMessage({
+                                  tenantName: p.tenant_name,
+                                  month: fmt.month(p.payment_month),
+                                  amount: p.amount_usd,
+                                  propertyName: p.property_name,
+                                }))} target="_blank" rel="noreferrer">
+                                  <Button size="xs" variant="ghost">{t.remindWhatsApp}</Button>
+                                </a>
+                              )}
+                            </div>
                           </td>
                         )}
                       </tr>

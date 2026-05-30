@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { StatCard, Card, Badge, ProgressBar, PageHeader, EmptyState, Spinner, fmt, apiFetch, IconBox } from '../ui';
+import { StatCard, Card, Badge, ProgressBar, PageHeader, EmptyState, Spinner, fmt, apiFetch, IconBox, Button, Modal, Input } from '../ui';
+import { generateWhatsAppLink, leaseExpiryMessage } from '../../lib/whatsapp';
+import { useTranslation } from '../../context/LanguageContext';
 
 export default function OwnerDashboard() {
+  const t = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [renewLease, setRenewLease] = useState(null);
+  const [renewDate, setRenewDate] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -14,7 +19,7 @@ export default function OwnerDashboard() {
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
   if (!data) return null;
 
-  const { properties, revenue, pendingMaintenance, tenants } = data;
+  const { properties, revenue, expenseSummary, leaseAlerts, pendingMaintenance, tenants } = data;
   const totalUnits = properties.reduce((s, p) => s + +p.total_units, 0);
   const occupiedUnits = properties.reduce((s, p) => s + +p.occupied_units, 0);
   const occupancyRate = totalUnits ? Math.round(occupiedUnits / totalUnits * 100) : 0;
@@ -23,8 +28,15 @@ export default function OwnerDashboard() {
     <div className="animate-up space-y-6">
       <PageHeader title="My Dashboard" subtitle={`${properties.length} properties · ${fmt.month(fmt.currentMonth())}`} />
 
+      {leaseAlerts?.length > 0 && (
+        <div className="p-4 rounded-lg bg-status-amber-dim border border-status-amber/30 text-sm">
+          ⚠️ {leaseAlerts.length} {t.leaseExpiring}
+          <button type="button" className="ml-2 text-accent underline" onClick={() => document.getElementById('lease-alerts')?.scrollIntoView({ behavior: 'smooth' })}>View</button>
+        </div>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard size="sm" label="Collected" value={fmt.usd(revenue.collected)} color="green"
           icon={<span className="text-sm font-bold">$</span>} />
         <StatCard size="sm" label="Pending" value={fmt.usd(revenue.pending)} color="amber"
@@ -33,7 +45,47 @@ export default function OwnerDashboard() {
           icon={<span className="text-sm">⚠</span>} />
         <StatCard size="sm" label="Occupancy" value={`${occupancyRate}%`} sub={`${occupiedUnits}/${totalUnits} units`} color="purple"
           icon={<span className="text-sm">▦</span>} />
+        {expenseSummary && (
+          <StatCard size="sm" label={t.netProfit} value={fmt.usd(expenseSummary.netProfit)} color={expenseSummary.netProfit >= 0 ? 'green' : 'red'}
+            icon={<span className="text-sm">📊</span>} />
+        )}
       </div>
+
+      {leaseAlerts?.length > 0 && (
+        <Card id="lease-alerts">
+          <h3 className="font-display font-bold mb-4">{t.leaseExpiring}</h3>
+          <div className="space-y-2">
+            {leaseAlerts.map((l) => (
+              <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 p-3 bg-surface rounded-sm border border-border text-sm">
+                <div>
+                  <span className="font-semibold">{l.tenant_name}</span>
+                  <span className="text-text-3"> · {l.property_name} · Unit {l.unit_number}</span>
+                  <div className={`text-xs mt-1 ${l.days_remaining < 7 ? 'text-status-red' : 'text-status-amber'}`}>
+                    Ends {fmt.date(l.end_date)} ({l.days_remaining} days)
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="xs" variant="secondary" onClick={() => { setRenewLease(l); setRenewDate(l.end_date?.slice?.(0, 10) || ''); }}>{t.renewLease}</Button>
+                  {l.tenant_phone && generateWhatsAppLink(l.tenant_phone, leaseExpiryMessage({ tenantName: l.tenant_name, endDate: fmt.date(l.end_date) })) && (
+                    <a href={generateWhatsAppLink(l.tenant_phone, leaseExpiryMessage({ tenantName: l.tenant_name, endDate: fmt.date(l.end_date) }))} target="_blank" rel="noreferrer">
+                      <Button size="xs" variant="ghost">WhatsApp</Button>
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      <Modal open={!!renewLease} onClose={() => setRenewLease(null)} title={t.renewLease}
+        footer={<><Button variant="secondary" onClick={() => setRenewLease(null)}>{t.cancel}</Button><Button onClick={async () => {
+          await apiFetch('/api/owner/renew-lease', { method: 'PATCH', body: { lease_id: renewLease.id, end_date: renewDate } });
+          setRenewLease(null);
+          apiFetch('/api/owner/dashboard').then(setData);
+        }}>{t.save}</Button></>}>
+        <Input label={t.leaseEnd} type="date" value={renewDate} onChange={(e) => setRenewDate(e.target.value)} />
+      </Modal>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Properties */}

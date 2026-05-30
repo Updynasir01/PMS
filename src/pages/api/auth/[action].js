@@ -29,12 +29,23 @@ async function login(req, res) {
 
   if (user.role === 'owner') {
     const owner = await queryOne(
-      'SELECT plan_status FROM owners WHERE user_id = $1',
+      'SELECT plan_status, trial_end, paid_until FROM owners WHERE user_id = $1',
       [user.id]
     );
     if (owner?.plan_status === 'suspended') {
       return res.status(403).json({
         error: 'Your account is suspended. Contact PropSync support.',
+      });
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    if (owner?.plan_status === 'trial' && owner.trial_end && String(owner.trial_end).slice(0, 10) < today) {
+      return res.status(403).json({
+        error: `Your trial ended on ${String(owner.trial_end).slice(0, 10)}. Contact PropSync to continue.`,
+      });
+    }
+    if (owner?.plan_status === 'expired') {
+      return res.status(403).json({
+        error: 'Your subscription has expired. Contact PropSync support.',
       });
     }
   }
@@ -69,6 +80,8 @@ async function me(req, res) {
   let profile = null;
   if (user.role === 'owner') {
     profile = await queryOne('SELECT * FROM owners WHERE user_id = $1', [user.id]);
+  } else if (user.role === 'caretaker') {
+    profile = await queryOne('SELECT * FROM caretakers WHERE user_id = $1', [user.id]);
   } else if (user.role === 'tenant') {
     profile = await queryOne(`
       SELECT t.*, u.unit_number, u.monthly_rent_usd, u.bedrooms, u.has_kitchen, u.toilets, u.is_furnished,

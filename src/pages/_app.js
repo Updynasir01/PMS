@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useRouter } from 'next/router';
 import { ThemeProvider } from '../context/ThemeContext';
+import { LanguageProvider } from '../context/LanguageContext';
 import { Spinner } from '../components/ui';
 import '../styles/globals.css';
 
@@ -58,9 +59,11 @@ export default function App({ Component, pageProps }) {
 
   return (
     <ThemeProvider>
-      <AuthContext.Provider value={{ user, setUser, logout }}>
-        <Component {...pageProps} />
-      </AuthContext.Provider>
+      <LanguageProvider>
+        <AuthContext.Provider value={{ user, setUser, logout }}>
+          <Component {...pageProps} />
+        </AuthContext.Provider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }
