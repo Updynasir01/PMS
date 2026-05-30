@@ -126,25 +126,33 @@ export function PageHeader({ title, subtitle, action }) {
 
 // ── Stat Card ─────────────────────────────────────────
 const statSizes = {
-  md: {
-    card: 'min-h-[120px]',
+  sm: {
+    card: 'min-h-0 !py-3 !px-4',
     bar: 'h-[2px]',
-    icon: '!w-9 !h-9 mb-4',
-    value: 'text-[32px] mb-1',
+    icon: '!w-8 !h-8 mb-2 rounded-[8px]',
+    value: 'text-[22px] mb-0.5',
+    label: 'text-[10px]',
+    sub: 'text-[11px] mt-1',
+  },
+  md: {
+    card: 'min-h-[100px]',
+    bar: 'h-[2px]',
+    icon: '!w-9 !h-9 mb-3',
+    value: 'text-[28px] mb-1',
+    label: 'text-[11px]',
+    sub: 'text-[12px] mt-1.5',
+  },
+  lg: {
+    card: 'min-h-[140px] !py-5 !px-5',
+    bar: 'h-[3px]',
+    icon: '!w-10 !h-10 mb-4',
+    value: 'text-[36px] mb-1',
     label: 'text-[11px]',
     sub: 'text-[13px] mt-2',
   },
-  lg: {
-    card: 'min-h-[160px] !py-6 !px-6',
-    bar: 'h-[3px]',
-    icon: '!w-12 !h-12 mb-5 rounded-[12px]',
-    value: 'text-[40px] sm:text-[48px] mb-2',
-    label: 'text-[12px]',
-    sub: 'text-[14px] mt-3',
-  },
 };
 
-export function StatCard({ label, value, sub, icon, color = 'purple', size = 'lg' }) {
+export function StatCard({ label, value, sub, icon, color = 'purple', size = 'sm' }) {
   const barColors = {
     purple: 'bg-accent',
     green: 'bg-status-green',
@@ -154,7 +162,7 @@ export function StatCard({ label, value, sub, icon, color = 'purple', size = 'lg
   };
   const tintMap = { purple: 'purple', green: 'green', amber: 'amber', red: 'red', blue: 'blue' };
   const accentValue = color === 'purple';
-  const s = statSizes[size] || statSizes.lg;
+  const s = statSizes[size] || statSizes.sm;
   return (
     <Card className={`relative overflow-hidden group ${s.card}`}>
       <div className={`absolute top-0 left-0 right-0 ${s.bar} ${barColors[color] || barColors.purple}`} />
