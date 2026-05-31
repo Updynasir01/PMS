@@ -17,9 +17,12 @@ async function login(req, res) {
   const { username, password } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
+  const loginId = username.toLowerCase().trim();
   const user = await queryOne(
-    'SELECT * FROM users WHERE username = $1 AND is_active = true',
-    [username.toLowerCase().trim()]
+    `SELECT * FROM users
+     WHERE is_active = true
+       AND (username = $1 OR LOWER(TRIM(email)) = $1)`,
+    [loginId]
   );
 
   if (!user) return res.status(401).json({ error: 'Invalid username or password' });

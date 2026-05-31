@@ -15,7 +15,7 @@ export default function LoginPage() {
   async function handleLogin(e) {
     e.preventDefault();
     setError('');
-    if (!username || !password) return setError('Enter your username and password');
+    if (!username || !password) return setError('Enter your username or email and password');
     setLoading(true);
     try {
       const res = await fetch('/api/auth/login', {
@@ -61,11 +61,11 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="surface-card rounded-xl shadow-2xl">
             <Input
-              label="Username"
+              label="Username or email"
               id="username"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              placeholder="your username"
+              placeholder="username or you@email.com"
               autoComplete="username"
               autoCapitalize="none"
             />
