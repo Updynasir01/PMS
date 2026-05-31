@@ -88,11 +88,7 @@ export default function LoginPage() {
             <Button type="submit" disabled={loading} className="w-full justify-center !py-3">
               {loading ? <><Spinner size="sm" /> Signing in...</> : 'Sign In'}
             </Button>
-
-            <p className="mt-6 text-center text-[13px] text-text-3">Demo: admin / Admin@2026!</p>
           </form>
-
-          <p className="text-center text-text-3 text-[11px] uppercase tracking-wide mt-4">Secured with JWT + bcrypt</p>
         </div>
       </div>
       <ToastContainer />
