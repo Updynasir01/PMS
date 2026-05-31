@@ -3,6 +3,7 @@ import { query, queryOne, execute } from '../../../lib/db';
 import { requireRole } from '../../../lib/auth';
 import { withErrorHandler, logActivity, sanitize } from '../../../lib/api';
 import { getPlan, computeTrialEnd, nextPlanKey, PLAN_KEYS } from '../../../lib/plans';
+import { validateEmailField } from '../../../lib/validateEmail';
 
 export default withErrorHandler(async function handler(req, res) {
   const user = await requireRole(req, 'superadmin');
@@ -137,13 +138,22 @@ async function createOwner(req, res, adminUser) {
   const existing = await queryOne('SELECT id FROM users WHERE username=$1', [username.toLowerCase().trim()]);
   if (existing) return res.status(409).json({ error: 'Username already taken' });
 
+  const emailCheck = validateEmailField(email, { required: true });
+  if (!emailCheck.ok) return res.status(400).json({ error: emailCheck.error });
+
+  const emailTaken = await queryOne(
+    'SELECT id FROM users WHERE LOWER(TRIM(email)) = $1',
+    [emailCheck.email]
+  );
+  if (emailTaken) return res.status(409).json({ error: 'This email is already registered' });
+
   const hash = await bcrypt.hash(password, 12);
 
   const { rows: [newUser] } = await execute(
     `INSERT INTO users (username,password_hash,role,full_name,phone,email)
      VALUES ($1,$2,'owner',$3,$4,$5) RETURNING id`,
     [sanitize(username.toLowerCase().trim()), hash, sanitize(full_name.trim()),
-     phone ? sanitize(phone.trim()) : null, email ? sanitize(email.trim()) : null]
+     phone ? sanitize(phone.trim()) : null, emailCheck.email]
   );
 
   const { rows: [newOwner] } = await execute(

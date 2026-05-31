@@ -5,6 +5,7 @@ import {
   fmt, apiFetch, toast, PlanBadge, PlanStatusBadge,
 } from '../components/ui';
 import { PLANS, PLAN_KEYS, TRIAL_OPTIONS, getPlan, formatUnitsUsed, computeTrialEnd } from '../lib/plans';
+import { validateEmailField } from '../lib/validateEmail';
 import Head from 'next/head';
 
 const defaultForm = {
@@ -38,6 +39,7 @@ export default function OwnersPage() {
   const [changePlan, setChangePlan] = useState('starter');
   const [extendDays, setExtendDays] = useState(30);
   const [form, setForm] = useState(defaultForm);
+  const [emailError, setEmailError] = useState('');
 
   const selectedPlan = useMemo(() => getPlan(form.plan), [form.plan]);
   const trialEndPreview = useMemo(() => {
@@ -54,10 +56,23 @@ export default function OwnersPage() {
     finally { setLoading(false); }
   }
 
-  async function handleCreate() {
+  function validateOwnerForm() {
     if (!form.username || !form.password || !form.full_name) {
-      return toast.error('Username, password and name are required');
+      toast.error('Username, password and name are required');
+      return false;
     }
+    const emailCheck = validateEmailField(form.email, { required: true });
+    if (!emailCheck.ok) {
+      setEmailError(emailCheck.error);
+      toast.error(emailCheck.error);
+      return false;
+    }
+    setEmailError('');
+    return true;
+  }
+
+  async function handleCreate() {
+    if (!validateOwnerForm()) return;
     setSaving(true);
     try {
       await apiFetch('/api/admin/owners', { method: 'POST', body: form });
@@ -108,7 +123,7 @@ export default function OwnersPage() {
               <h2 className="font-display text-2xl font-bold">Property Owners</h2>
               <p className="text-text-3 text-sm">{owners.length} registered owners</p>
             </div>
-            <Button onClick={() => setAddOpen(true)}><span>+</span> Add Owner</Button>
+            <Button onClick={() => { setAddOpen(true); setEmailError(''); }}><span>+</span> Add Owner</Button>
           </div>
 
           {loading ? <div className="flex justify-center py-20"><Spinner size="lg" /></div> : (
@@ -197,7 +212,33 @@ export default function OwnersPage() {
             <Input label="Phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+252615..." />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="owner@email.com" />
+            <div>
+              <Input
+                label="Email *"
+                id="owner-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={form.email}
+                onChange={e => {
+                  const v = e.target.value;
+                  setForm(f => ({ ...f, email: v }));
+                  if (emailError) {
+                    const check = validateEmailField(v, { required: true });
+                    setEmailError(check.ok ? '' : check.error);
+                  }
+                }}
+                onBlur={() => {
+                  const check = validateEmailField(form.email, { required: true });
+                  setEmailError(check.ok ? '' : check.error);
+                }}
+                placeholder="owner@example.com"
+                className={emailError ? '[&_input]:border-status-red [&_input]:focus:border-status-red' : ''}
+              />
+              {emailError && (
+                <p className="text-status-red text-[12px] -mt-3 mb-2">{emailError}</p>
+              )}
+            </div>
             <Input label="Company Name" value={form.company_name} onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))} placeholder="Hassan Properties" />
           </div>
           <Input label="Address / Location" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} placeholder="KM4, Mogadishu" />
