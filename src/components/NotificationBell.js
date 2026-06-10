@@ -62,7 +62,7 @@ export default function NotificationBell() {
   }
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative z-50" ref={panelRef}>
       <button
         type="button"
         onClick={handleOpen}
@@ -81,7 +81,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[min(100vw-2rem,360px)] surface-card rounded-lg border border-border shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-[min(100vw-2rem,360px)] surface-card rounded-lg border border-border shadow-2xl z-[100] overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <span className="font-semibold text-sm text-text-1">Notifications</span>
             {unreadCount > 0 && (
