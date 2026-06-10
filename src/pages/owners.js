@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Layout from '../components/layout/Layout';
 import {
   Card, Button, Modal, Input, Select, Spinner, Avatar,
@@ -7,6 +7,7 @@ import {
 import { PLANS, PLAN_KEYS, TRIAL_OPTIONS, getPlan, formatUnitsUsed, computeTrialEnd } from '../lib/plans';
 import { validateEmailField } from '../lib/validateEmail';
 import Head from 'next/head';
+import { useAutoRefresh, dispatchLiveRefresh } from '../hooks/useAutoRefresh';
 
 const defaultForm = {
   username: '', password: '', full_name: '', phone: '', email: '',
@@ -47,14 +48,14 @@ export default function OwnersPage() {
     return computeTrialEnd(Number(form.trial_days));
   }, [form.trial_days]);
 
-  useEffect(() => { loadOwners(); }, []);
-
-  async function loadOwners() {
-    setLoading(true);
+  const loadOwners = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try { setOwners(await apiFetch('/api/admin/owners')); }
-    catch (e) { toast.error(e.message); }
-    finally { setLoading(false); }
-  }
+    catch (e) { if (!silent) toast.error(e.message); }
+    finally { if (!silent) setLoading(false); }
+  }, []);
+
+  useAutoRefresh((silent) => loadOwners(silent), [loadOwners]);
 
   function validateOwnerForm() {
     if (!form.username || !form.password || !form.full_name) {
@@ -80,6 +81,7 @@ export default function OwnersPage() {
       setAddOpen(false);
       setForm(defaultForm);
       loadOwners();
+      dispatchLiveRefresh();
     } catch (e) { toast.error(e.message); }
     finally { setSaving(false); }
   }
@@ -89,6 +91,7 @@ export default function OwnersPage() {
       await apiFetch('/api/admin/owners-toggle', { method: 'PATCH', body: { id } });
       toast.success(isActive ? 'Owner disabled' : 'Owner enabled');
       loadOwners();
+      dispatchLiveRefresh();
     } catch (e) { toast.error(e.message); }
   }
 
@@ -102,6 +105,7 @@ export default function OwnersPage() {
       });
       setManageOwner(res.owner);
       loadOwners();
+      dispatchLiveRefresh();
       toast.success('Owner subscription updated');
     } catch (e) { toast.error(e.message); }
     finally { setPlanAction(null); }

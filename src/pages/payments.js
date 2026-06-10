@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import Layout from '../components/layout/Layout';
 import { Card, Badge, Button, Modal, Select, Input, EmptyState, Spinner, fmt, apiFetch, toast } from '../components/ui';
 import { useAuth } from './_app';
@@ -6,6 +6,7 @@ import Head from 'next/head';
 import { downloadReceiptPdf } from '../lib/generateReceipt';
 import { generateWhatsAppLink, rentReminderMessage } from '../lib/whatsapp';
 import { useTranslation } from '../context/LanguageContext';
+import { useAutoRefresh, dispatchLiveRefresh } from '../hooks/useAutoRefresh';
 
 const METHODS = [
   { value: 'evc_plus', label: 'EVC Plus' },
@@ -31,20 +32,19 @@ export default function PaymentsPage() {
   const isAdmin = user?.role === 'superadmin';
   const isTenant = user?.role === 'tenant';
 
-  useEffect(() => { loadPayments(); }, [filterStatus, filterMonth]);
-
-  async function loadPayments() {
-    setLoading(true);
+  const loadPayments = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const params = new URLSearchParams();
       if (filterStatus) params.set('status', filterStatus);
       if (filterMonth) params.set('month', filterMonth);
       const endpoint = isAdmin ? `/api/admin/payments?${params}` : isTenant ? '/api/tenant/payments' : `/api/owner/payments?${params}`;
-      const data = await apiFetch(endpoint);
-      setPayments(data);
-    } catch (e) { toast.error(e.message); }
-    finally { setLoading(false); }
-  }
+      setPayments(await apiFetch(endpoint));
+    } catch (e) { if (!silent) toast.error(e.message); }
+    finally { if (!silent) setLoading(false); }
+  }, [filterStatus, filterMonth, isAdmin, isTenant]);
+
+  useAutoRefresh((silent) => loadPayments(silent), [loadPayments]);
 
   function openUpdate(p) {
     setSelected(p);
@@ -59,6 +59,7 @@ export default function PaymentsPage() {
       toast.success('Payment updated!');
       setSelected(null);
       loadPayments();
+      dispatchLiveRefresh();
     } catch (e) { toast.error(e.message); }
     finally { setSaving(false); }
   }
@@ -70,6 +71,7 @@ export default function PaymentsPage() {
       toast.success(`Generated ${data.created} payment records for ${fmt.month(genMonth)}`);
       setGenOpen(false);
       loadPayments();
+      dispatchLiveRefresh();
     } catch (e) { toast.error(e.message); }
     finally { setSaving(false); }
   }

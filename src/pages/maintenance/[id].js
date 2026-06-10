@@ -5,6 +5,7 @@ import { Card, Badge, Button, Select, Input, Spinner, fmt, apiFetch, toast } fro
 import { generateWhatsAppLink, maintenanceContactMessage } from '../../lib/whatsapp';
 import { useAuth } from '../_app';
 import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
+import { dispatchLiveRefresh } from '../../hooks/useAutoRefresh';
 import Head from 'next/head';
 
 export default function MaintenanceDetailPage() {
@@ -90,6 +91,7 @@ export default function MaintenanceDetailPage() {
       setMessage('');
       await pollNow();
       scrollToBottom(true);
+      dispatchLiveRefresh();
     } catch (e) { toast.error(e.message); }
     finally { setSending(false); }
   }
@@ -101,6 +103,7 @@ export default function MaintenanceDetailPage() {
       await apiFetch(patchUrl, { method: 'PATCH', body: { id, ...updateForm } });
       toast.success('Request updated!');
       await pollNow();
+      dispatchLiveRefresh();
     } catch (e) { toast.error(e.message); }
     finally { setUpdating(false); }
   }

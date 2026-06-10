@@ -1,16 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { StatCard, Card, Badge, PageHeader, EmptyState, Spinner, fmt, apiFetch, FeaturePill } from '../ui';
 import LeaseSignPanel from '../LeaseSignPanel';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 export default function TenantDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    apiFetch('/api/tenant/dashboard').then(setData).finally(() => setLoading(false));
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      setData(await apiFetch('/api/tenant/dashboard'));
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
+
+  useAutoRefresh(load, []);
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
   if (!data) return null;

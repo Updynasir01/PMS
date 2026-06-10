@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/layout/Layout';
 import { Card, Badge, Button, Modal, Select, Input, Textarea, EmptyState, Spinner, fmt, apiFetch, toast } from '../../components/ui';
 import { useAuth } from '../_app';
 import Head from 'next/head';
+import { useAutoRefresh, dispatchLiveRefresh } from '../../hooks/useAutoRefresh';
 
 export default function MaintenancePage() {
   const { user } = useAuth();
@@ -18,19 +19,19 @@ export default function MaintenancePage() {
   const isCaretaker = user?.role === 'caretaker';
   const isAdmin = user?.role === 'superadmin';
 
-  useEffect(() => { loadRequests(); }, []);
-
-  async function loadRequests() {
-    setLoading(true);
+  const loadRequests = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const endpoint = isAdmin ? '/api/admin/maintenance'
         : isTenant ? '/api/tenant/maintenance'
         : isCaretaker ? '/api/caretaker/maintenance'
         : '/api/owner/maintenance';
       setRequests(await apiFetch(endpoint));
-    } catch (e) { toast.error(e.message); }
-    finally { setLoading(false); }
-  }
+    } catch (e) { if (!silent) toast.error(e.message); }
+    finally { if (!silent) setLoading(false); }
+  }, [isAdmin, isTenant, isCaretaker]);
+
+  useAutoRefresh((silent) => loadRequests(silent), [loadRequests]);
 
   async function handleSubmitRequest() {
     if (!form.title || !form.description) return toast.error('Title and description are required');
@@ -41,6 +42,7 @@ export default function MaintenancePage() {
       setNewOpen(false);
       setForm({ type: 'electricity', title: '', description: '', priority: 'medium' });
       loadRequests();
+      dispatchLiveRefresh();
     } catch (e) { toast.error(e.message); }
     finally { setSaving(false); }
   }

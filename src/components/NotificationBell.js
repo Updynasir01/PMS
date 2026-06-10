@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { apiFetch, fmt } from './ui';
+import { LIVE_REFRESH_MS, LIVE_REFRESH_EVENT } from '../hooks/useAutoRefresh';
 
-const POLL_MS = 45000;
+const POLL_MS = LIVE_REFRESH_MS;
 
 export default function NotificationBell() {
   const router = useRouter();
@@ -25,7 +26,17 @@ export default function NotificationBell() {
   useEffect(() => {
     load();
     const t = setInterval(load, POLL_MS);
-    return () => clearInterval(t);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') load();
+    };
+    const onGlobal = () => load();
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener(LIVE_REFRESH_EVENT, onGlobal);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener(LIVE_REFRESH_EVENT, onGlobal);
+    };
   }, [load]);
 
   useEffect(() => {

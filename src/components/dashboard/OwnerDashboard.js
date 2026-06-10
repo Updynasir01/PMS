@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { StatCard, Card, Badge, ProgressBar, PageHeader, EmptyState, Spinner, fmt, apiFetch, IconBox, Button, Modal, Input } from '../ui';
 import { generateWhatsAppLink, leaseExpiryMessage } from '../../lib/whatsapp';
 import { useTranslation } from '../../context/LanguageContext';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 export default function OwnerDashboard() {
   const t = useTranslation();
@@ -12,9 +13,16 @@ export default function OwnerDashboard() {
   const [renewDate, setRenewDate] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    apiFetch('/api/owner/dashboard').then(setData).finally(() => setLoading(false));
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      setData(await apiFetch('/api/owner/dashboard'));
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
+
+  useAutoRefresh(load, []);
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
   if (!data) return null;

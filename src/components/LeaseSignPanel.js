@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Button, Badge, Spinner, toast, apiFetch } from './ui';
 import SignaturePad from './SignaturePad';
 import { buildLeasePdf, downloadPdfDataUrl, leaseSignaturesFromDocument } from '../lib/generateLease';
+import { useAutoRefresh, dispatchLiveRefresh } from '../hooks/useAutoRefresh';
 
 const STATUS_LABELS = {
   pending_signatures: { text: 'Awaiting signatures', status: 'pending' },
@@ -33,21 +34,21 @@ export default function LeaseSignPanel({ tenantId, role, apiBase, qrToken, fetch
       ? `?tenant_id=${tenantId}`
       : '';
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await request(`${base}${query}`);
       setDoc(res.document);
       setPayload(res.payload);
     } catch (e) {
-      if (!e.message?.includes('not found')) toast.error(e.message);
+      if (!e.message?.includes('not found') && !silent) toast.error(e.message);
       setDoc(null);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  }, [base, query]);
+  }, [base, query, request]);
 
-  useEffect(() => { load(); }, [load]);
+  useAutoRefresh((silent) => load(silent), [load]);
 
   async function handleCreate() {
     setSaving(true);
@@ -62,6 +63,7 @@ export default function LeaseSignPanel({ tenantId, role, apiBase, qrToken, fetch
       });
       toast.success('Lease saved to cloud');
       load();
+      dispatchLiveRefresh();
     } catch (e) {
       toast.error(e.message);
     } finally {
@@ -106,6 +108,7 @@ export default function LeaseSignPanel({ tenantId, role, apiBase, qrToken, fetch
       );
       setSigImage(null);
       load();
+      dispatchLiveRefresh();
     } catch (e) {
       toast.error(e.message);
     } finally {

@@ -1,13 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { StatCard, Card, Badge, BarChart, PageHeader, EmptyState, Spinner, fmt, apiFetch, IconBox } from '../ui';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    apiFetch('/api/admin/stats').then(setData).finally(() => setLoading(false));
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      setData(await apiFetch('/api/admin/stats'));
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
+
+  useAutoRefresh(load, []);
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
   if (!data) return null;

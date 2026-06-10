@@ -8,6 +8,7 @@ import UnitPhotosModal from '../components/UnitPhotosModal';
 import MoveInChecklistModal from '../components/MoveInChecklistModal';
 import LeaseSignPanel from '../components/LeaseSignPanel';
 import { MOGADISHU_DISTRICTS, DEFAULT_DISTRICT } from '../lib/mogadishuDistricts';
+import { useAutoRefresh, dispatchLiveRefresh } from '../hooks/useAutoRefresh';
 const TYPE_ICONS = { apartment:'🏢', villa:'🏡', commercial:'🏪', office:'🏬', mixed:'🏗️' };
 
 export default function PropertiesPage() {
@@ -38,16 +39,15 @@ export default function PropertiesPage() {
   const [unitForm, setUnitForm] = useState({ unit_number:'', floor:1, bedrooms:2, has_kitchen:true, toilets:1, is_furnished:false, monthly_rent_usd:'', notes:'' });
   const [tenantForm, setTenantForm] = useState({ username:'', password:'', full_name:'', phone:'', email:'', unit_id:'', monthly_rent_usd:'', deposit_usd:'', start_date: new Date().toISOString().slice(0,10), end_date:'', national_id:'', emergency_contact:'' });
 
-  useEffect(() => { loadProperties(); }, []);
-
-  async function loadProperties() {
-    setLoading(true);
+  const loadProperties = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
-      const data = await apiFetch('/api/owner/properties');
-      setProperties(data);
-    } catch (e) { toast.error(e.message); }
-    finally { setLoading(false); }
-  }
+      setProperties(await apiFetch('/api/owner/properties'));
+    } catch (e) { if (!silent) toast.error(e.message); }
+    finally { if (!silent) setLoading(false); }
+  }, []);
+
+  useAutoRefresh((silent) => loadProperties(silent), [loadProperties]);
 
   async function loadUnits(propId) {
     setUnitsLoading(true);
@@ -72,6 +72,7 @@ export default function PropertiesPage() {
       setAddPropOpen(false);
       setPropForm({ name:'', district: DEFAULT_DISTRICT, address:'', type:'apartment', description:'' });
       loadProperties();
+      dispatchLiveRefresh();
     } catch (e) { toast.error(e.message); }
     finally { setSaving(false); }
   }

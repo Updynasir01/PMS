@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import Layout from '../components/layout/Layout';
 import { Card, Button, Modal, Input, Checkbox, Spinner, apiFetch, toast } from '../components/ui';
 import { useTranslation } from '../context/LanguageContext';
 import Head from 'next/head';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export default function CaretakersPage() {
   const t = useTranslation();
@@ -12,8 +13,8 @@ export default function CaretakersPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ full_name: '', username: '', password: '', phone: '', property_ids: [] });
 
-  async function load() {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const [c, p] = await Promise.all([
         apiFetch('/api/owner/caretakers'),
@@ -21,11 +22,11 @@ export default function CaretakersPage() {
       ]);
       setCaretakers(c);
       setProperties(p);
-    } catch (e) { toast.error(e.message); }
-    finally { setLoading(false); }
-  }
+    } catch (e) { if (!silent) toast.error(e.message); }
+    finally { if (!silent) setLoading(false); }
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useAutoRefresh((silent) => load(silent), [load]);
 
   function toggleProp(id) {
     setForm((f) => ({

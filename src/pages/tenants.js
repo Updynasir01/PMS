@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import Layout from '../components/layout/Layout';
 import { Card, Badge, EmptyState, Spinner, Avatar, fmt, apiFetch, toast } from '../components/ui';
 import { useAuth } from './_app';
@@ -7,6 +7,7 @@ import { Button } from '../components/ui';
 import { Modal } from '../components/ui';
 import LeaseSignPanel from '../components/LeaseSignPanel';
 import { useTranslation } from '../context/LanguageContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export default function TenantsPage() {
   const { user } = useAuth();
@@ -18,10 +19,16 @@ export default function TenantsPage() {
   const isAdmin = user?.role === 'superadmin';
   const isOwner = user?.role === 'owner';
 
-  useEffect(() => {
+  const loadTenants = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     const endpoint = isAdmin ? '/api/admin/tenants' : '/api/owner/tenants';
-    apiFetch(endpoint).then(setTenants).catch(e => toast.error(e.message)).finally(() => setLoading(false));
-  }, []);
+    try {
+      setTenants(await apiFetch(endpoint));
+    } catch (e) { if (!silent) toast.error(e.message); }
+    finally { if (!silent) setLoading(false); }
+  }, [isAdmin]);
+
+  useAutoRefresh((silent) => loadTenants(silent), [loadTenants]);
 
   return (
     <>

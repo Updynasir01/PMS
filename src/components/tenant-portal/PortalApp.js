@@ -3,6 +3,7 @@ import {
   Badge, Button, Select, Input, Textarea, Spinner, fmt, FeaturePill, EmptyState, Card,
 } from '../ui';
 import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
+import { useAutoRefresh, dispatchLiveRefresh } from '../../hooks/useAutoRefresh';
 import { downloadReceiptPdf } from '../../lib/generateReceipt';
 import LeaseSignPanel from '../LeaseSignPanel';
 
@@ -59,20 +60,19 @@ export default function PortalApp({ token }) {
     onUpdate: setDetail,
   });
 
-  const loadDashboard = useCallback(async () => {
-    setLoading(true);
+  const loadDashboard = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError('');
     try {
-      const d = await portalFetch(token, '/api/public/dashboard');
-      setData(d);
+      setData(await portalFetch(token, '/api/public/dashboard'));
     } catch (e) {
-      setError(e.message);
+      if (!silent) setError(e.message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [token]);
 
-  useEffect(() => { if (token) loadDashboard(); }, [token, loadDashboard]);
+  useAutoRefresh((silent) => { if (token) loadDashboard(silent); }, [token, loadDashboard]);
 
   useEffect(() => {
     if (!detailId || !token) return undefined;
@@ -102,6 +102,7 @@ export default function PortalApp({ token }) {
       setNewOpen(false);
       setForm({ type: 'plumbing', title: '', description: '', priority: 'medium' });
       await loadDashboard();
+      dispatchLiveRefresh();
       setTab('maintenance');
     } catch (e) {
       setError(e.message);

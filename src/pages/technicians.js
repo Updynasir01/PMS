@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/layout/Layout';
 import { Card, Button, Modal, Select, Input, Textarea, Spinner, fmt, apiFetch, toast } from '../components/ui';
 import { generateWhatsAppLink } from '../lib/whatsapp';
 import { useTranslation } from '../context/LanguageContext';
 import Head from 'next/head';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 const SPECIALTIES = [
   { value: 'electricity', label: 'Electricity' },
@@ -22,16 +23,16 @@ export default function TechniciansPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: '', specialty: 'general', phone: '', whatsapp: '', notes: '' });
 
-  async function load() {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const q = filter ? `?specialty=${filter}` : '';
       setList(await apiFetch(`/api/owner/technicians${q}`));
-    } catch (e) { toast.error(e.message); }
-    finally { setLoading(false); }
-  }
+    } catch (e) { if (!silent) toast.error(e.message); }
+    finally { if (!silent) setLoading(false); }
+  }, [filter]);
 
-  useEffect(() => { load(); }, [filter]);
+  useAutoRefresh((silent) => load(silent), [load]);
 
   async function handleAdd() {
     try {

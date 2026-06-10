@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/layout/Layout';
 import { Card, Button, Modal, Select, Input, Textarea, Spinner, fmt, apiFetch, toast, StatCard } from '../components/ui';
 import { useTranslation } from '../context/LanguageContext';
 import Head from 'next/head';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 const CATEGORIES = [
   { value: 'generator_fuel', label: 'Generator fuel' },
@@ -30,18 +31,17 @@ export default function ExpensesPage() {
     property_id: '', unit_id: '', receipt_note: '',
   });
 
-  async function load() {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const params = new URLSearchParams({ month });
       if (propertyId) params.set('property_id', propertyId);
-      const d = await apiFetch(`/api/owner/expenses?${params}`);
-      setData(d);
-    } catch (e) { toast.error(e.message); }
-    finally { setLoading(false); }
-  }
+      setData(await apiFetch(`/api/owner/expenses?${params}`));
+    } catch (e) { if (!silent) toast.error(e.message); }
+    finally { if (!silent) setLoading(false); }
+  }, [month, propertyId]);
 
-  useEffect(() => { load(); }, [month, propertyId]);
+  useAutoRefresh((silent) => load(silent), [load]);
   useEffect(() => {
     apiFetch('/api/owner/properties').then(setProperties).catch(() => {});
   }, []);

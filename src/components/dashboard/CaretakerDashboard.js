@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { Card, Badge, PageHeader, EmptyState, Spinner, fmt, apiFetch } from '../ui';
 import { useTranslation } from '../../context/LanguageContext';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 export default function CaretakerDashboard() {
   const t = useTranslation();
@@ -9,9 +10,16 @@ export default function CaretakerDashboard() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    apiFetch('/api/caretaker/dashboard').then(setData).finally(() => setLoading(false));
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      setData(await apiFetch('/api/caretaker/dashboard'));
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
+
+  useAutoRefresh(load, []);
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
   if (!data) return null;
