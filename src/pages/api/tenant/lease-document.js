@@ -7,6 +7,7 @@ import {
   computeStatus,
   formatDocumentResponse,
 } from '../../../lib/leaseDocuments';
+import { notifyLeaseSigned } from '../../../lib/notifications';
 
 export default withErrorHandler(async function handler(req, res) {
   const user = await requireRole(req, 'tenant');
@@ -66,6 +67,8 @@ export default withErrorHandler(async function handler(req, res) {
 
     const fresh = await queryOne('SELECT * FROM lease_documents WHERE id = $1', [id]);
     const payload = await getLeasePayloadForTenantUser(user.id);
+    const fullySigned = status === 'fully_signed';
+    await notifyLeaseSigned(fresh, 'tenant', payload, fullySigned);
     return res.json({
       success: true,
       status,

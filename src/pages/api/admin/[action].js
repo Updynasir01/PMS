@@ -4,6 +4,7 @@ import { requireRole } from '../../../lib/auth';
 import { withErrorHandler, logActivity, sanitize } from '../../../lib/api';
 import { getPlan, computeTrialEnd, nextPlanKey, PLAN_KEYS } from '../../../lib/plans';
 import { validateEmailField } from '../../../lib/validateEmail';
+import { notifyAdmins } from '../../../lib/notifications';
 
 export default withErrorHandler(async function handler(req, res) {
   const user = await requireRole(req, 'superadmin');
@@ -176,6 +177,13 @@ async function createOwner(req, res, adminUser) {
 
   await logActivity(adminUser.id, 'create', 'owner', newOwner.id,
     `Created owner: ${full_name} (${planKey}${hasTrial ? `, ${trialDays}d trial` : ''})`);
+  await notifyAdmins({
+    type: 'owner_created',
+    title: 'New property owner',
+    body: `${full_name} (@${username.toLowerCase().trim()})`,
+    link: '/owners',
+    refKey: `owner_new_${newOwner.id}`,
+  });
   res.status(201).json({ success: true, ownerId: newOwner.id });
 }
 

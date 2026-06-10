@@ -1,6 +1,7 @@
 import { query, queryOne, execute } from '../../../lib/db';
 import { requireRole, getTenantProfile } from '../../../lib/auth';
 import { withErrorHandler, logActivity, sanitize } from '../../../lib/api';
+import { notifyMaintenanceNew, notifyMaintenanceMessage } from '../../../lib/notifications';
 
 export default withErrorHandler(async function handler(req, res) {
   const user = await requireRole(req, 'tenant');
@@ -89,6 +90,7 @@ async function createMaintenance(req, res, user, tenant) {
      type, sanitize(title.trim()), sanitize(description.trim()), priority || 'medium']
   );
   await logActivity(user.id, 'create', 'maintenance', mr.id, `Submitted request: ${title}`);
+  await notifyMaintenanceNew(mr.id, title, user.full_name);
   res.status(201).json({ success: true, requestId: mr.id });
 }
 
@@ -121,5 +123,6 @@ async function sendMessage(req, res, user, tenant) {
     [request_id, user.id, sanitize(message.trim())]
   );
   await execute('UPDATE maintenance_requests SET updated_at=NOW() WHERE id=$1', [request_id]);
+  await notifyMaintenanceMessage(request_id, user.id, 'tenant');
   res.status(201).json({ success: true });
 }

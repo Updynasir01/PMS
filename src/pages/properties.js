@@ -7,8 +7,7 @@ import Head from 'next/head';
 import UnitPhotosModal from '../components/UnitPhotosModal';
 import MoveInChecklistModal from '../components/MoveInChecklistModal';
 import LeaseSignPanel from '../components/LeaseSignPanel';
-
-const DISTRICTS = ['KM4','Airport Road','Hodan','Wadajir','Hamar Weyne','Abdiaziz','Daynile','Other'];
+import { MOGADISHU_DISTRICTS, DEFAULT_DISTRICT } from '../lib/mogadishuDistricts';
 const TYPE_ICONS = { apartment:'🏢', villa:'🏡', commercial:'🏪', office:'🏬', mixed:'🏗️' };
 
 export default function PropertiesPage() {
@@ -35,7 +34,7 @@ export default function PropertiesPage() {
   const [saving, setSaving] = useState(false);
 
   // Forms
-  const [propForm, setPropForm] = useState({ name:'', district:'KM4', address:'', type:'apartment', description:'' });
+  const [propForm, setPropForm] = useState({ name:'', district: DEFAULT_DISTRICT, address:'', type:'apartment', description:'' });
   const [unitForm, setUnitForm] = useState({ unit_number:'', floor:1, bedrooms:2, has_kitchen:true, toilets:1, is_furnished:false, monthly_rent_usd:'', notes:'' });
   const [tenantForm, setTenantForm] = useState({ username:'', password:'', full_name:'', phone:'', email:'', unit_id:'', monthly_rent_usd:'', deposit_usd:'', start_date: new Date().toISOString().slice(0,10), end_date:'', national_id:'', emergency_contact:'' });
 
@@ -71,7 +70,7 @@ export default function PropertiesPage() {
       await apiFetch('/api/owner/properties', { method: 'POST', body: propForm });
       toast.success('Property created!');
       setAddPropOpen(false);
-      setPropForm({ name:'', district:'KM4', address:'', type:'apartment', description:'' });
+      setPropForm({ name:'', district: DEFAULT_DISTRICT, address:'', type:'apartment', description:'' });
       loadProperties();
     } catch (e) { toast.error(e.message); }
     finally { setSaving(false); }
@@ -451,7 +450,7 @@ export default function PropertiesPage() {
           <Input label="Property Name *" value={propForm.name} onChange={e => setPropForm(f => ({ ...f, name: e.target.value }))} placeholder="Hassan Apartments KM4" />
           <div className="grid grid-cols-2 gap-4">
             <Select label="District *" value={propForm.district} onChange={e => setPropForm(f => ({ ...f, district: e.target.value }))}>
-              {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+              {MOGADISHU_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
             </Select>
             <Select label="Type *" value={propForm.type} onChange={e => setPropForm(f => ({ ...f, type: e.target.value }))}>
               <option value="apartment">🏢 Apartment</option>
@@ -461,7 +460,7 @@ export default function PropertiesPage() {
               <option value="mixed">🏗️ Mixed Use</option>
             </Select>
           </div>
-          <Input label="Full Address *" value={propForm.address} onChange={e => setPropForm(f => ({ ...f, address: e.target.value }))} placeholder="Near KM4 Junction, Wadajir District" />
+          <Input label="Full Address *" value={propForm.address} onChange={e => setPropForm(f => ({ ...f, address: e.target.value }))} placeholder="Street, landmark, Mogadishu" />
           <Textarea label="Description" value={propForm.description} onChange={e => setPropForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description..." />
         </Modal>
 

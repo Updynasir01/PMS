@@ -1,6 +1,7 @@
 import { query, queryOne, execute } from '../../../lib/db';
 import { withErrorHandler, sanitize } from '../../../lib/api';
 import { resolveQrToken } from '../../../lib/qrPortal';
+import { notifyMaintenanceNew, notifyMaintenanceMessage } from '../../../lib/notifications';
 
 const VALID_TYPES = ['electricity', 'plumbing', 'painting', 'ac_cooling', 'other'];
 const VALID_PRIORITIES = ['low', 'medium', 'high'];
@@ -49,6 +50,12 @@ export default withErrorHandler(async function handler(req, res) {
       priority || 'medium',
     ]
   );
+
+  const tenant = await queryOne(
+    'SELECT u.full_name FROM tenants t JOIN users u ON t.user_id = u.id WHERE t.id = $1',
+    [ctx.tenant_id]
+  );
+  await notifyMaintenanceNew(mr.id, sanitize(title.trim()), tenant?.full_name);
 
   res.status(201).json({ success: true, requestId: mr.id });
 });

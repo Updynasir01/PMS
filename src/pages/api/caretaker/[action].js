@@ -1,6 +1,7 @@
 import { query, queryOne, execute } from '../../../lib/db';
 import { requireRole } from '../../../lib/auth';
 import { withErrorHandler, sanitize, logActivity } from '../../../lib/api';
+import { notifyMaintenanceMessage, notifyMaintenanceStatus } from '../../../lib/notifications';
 
 async function getCaretaker(userId) {
   return queryOne('SELECT * FROM caretakers WHERE user_id = $1', [userId]);
@@ -122,7 +123,7 @@ async function getMaintenanceDetail(req, res, caretaker) {
 async function updateMaintenance(req, res, user, caretaker) {
   const { id, status, assigned_technician } = req.body || {};
   const mr = await queryOne(
-    'SELECT id FROM maintenance_requests WHERE id = $1 AND property_id = ANY($2::int[])',
+    'SELECT id, status FROM maintenance_requests WHERE id = $1 AND property_id = ANY($2::int[])',
     [id, caretaker.property_ids || []]
   );
   if (!mr) return res.status(404).json({ error: 'Request not found' });
@@ -132,6 +133,7 @@ async function updateMaintenance(req, res, user, caretaker) {
     [status, assigned_technician ? sanitize(assigned_technician) : null, id]
   );
   await logActivity(user.id, 'update', 'maintenance', id, `Caretaker updated request ${id}`);
+  if (status && status !== mr.status) await notifyMaintenanceStatus(id, status);
   res.json({ success: true });
 }
 
@@ -150,5 +152,6 @@ async function sendMessage(req, res, user, caretaker) {
     [request_id, user.id, sanitize(message.trim())]
   );
   await execute('UPDATE maintenance_requests SET updated_at=NOW() WHERE id=$1', [request_id]);
+  await notifyMaintenanceMessage(request_id, user.id, 'caretaker');
   res.status(201).json({ success: true });
 }

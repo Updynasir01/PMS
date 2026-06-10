@@ -3,6 +3,7 @@ import { withErrorHandler } from '../../../lib/api';
 import { resolveQrToken } from '../../../lib/qrPortal';
 import { getLeasePayloadByQrToken } from '../../../lib/leasePayload';
 import { computeStatus, formatDocumentResponse } from '../../../lib/leaseDocuments';
+import { notifyLeaseSigned } from '../../../lib/notifications';
 
 export default withErrorHandler(async function handler(req, res) {
   const { token } = req.query;
@@ -67,6 +68,8 @@ export default withErrorHandler(async function handler(req, res) {
 
     const fresh = await queryOne('SELECT * FROM lease_documents WHERE id = $1', [id]);
     const payload = await getLeasePayloadByQrToken(token);
+    const fullySigned = status === 'fully_signed';
+    await notifyLeaseSigned(fresh, 'tenant', payload, fullySigned);
     return res.json({
       success: true,
       status,

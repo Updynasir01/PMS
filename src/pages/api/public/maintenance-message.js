@@ -1,6 +1,7 @@
 import { queryOne, execute } from '../../../lib/db';
 import { withErrorHandler, sanitize } from '../../../lib/api';
 import { resolveQrToken } from '../../../lib/qrPortal';
+import { notifyMaintenanceMessage } from '../../../lib/notifications';
 
 export default withErrorHandler(async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -27,6 +28,7 @@ export default withErrorHandler(async function handler(req, res) {
     [request_id, ctx.tenant_user_id, sanitize(message.trim())]
   );
   await execute('UPDATE maintenance_requests SET updated_at=NOW() WHERE id=$1', [request_id]);
+  await notifyMaintenanceMessage(request_id, ctx.tenant_user_id, 'tenant');
 
   res.status(201).json({ success: true });
 });

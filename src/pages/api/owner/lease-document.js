@@ -25,6 +25,7 @@ import {
   computeStatus,
   formatDocumentResponse,
 } from '../../../lib/leaseDocuments';
+import { notifyLeaseCreated, notifyLeaseSigned } from '../../../lib/notifications';
 
 function makeContractRef(payload) {
   const t = payload.tenant?.full_name || 'T';
@@ -70,6 +71,7 @@ export default withErrorHandler(async function handler(req, res) {
        VALUES ($1, $2, $3, $4, 'pending_signatures') RETURNING *`,
       [payload.lease_id, tenant_id, ownerId, contract_ref]
     );
+    await notifyLeaseCreated(doc, payload);
     return res.status(201).json({ document: formatDocumentResponse(doc), payload });
   }
 
@@ -107,6 +109,8 @@ export default withErrorHandler(async function handler(req, res) {
 
       const fresh = await getDocumentById(id, ownerId);
       const payload = await getLeasePayloadForTenant(fresh.tenant_id, ownerId);
+      const fullySigned = status === 'fully_signed';
+      await notifyLeaseSigned(fresh, party, payload, fullySigned);
       return res.json({
         success: true,
         status,

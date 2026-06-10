@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../../pages/_app';
 import { Avatar, ToastContainer, ThemeToggle, IconBox } from '../ui';
 import { LanguageToggle } from '../ui/LanguageToggle';
+import NotificationBell from '../NotificationBell';
 import { useTranslation } from '../../context/LanguageContext';
 
 function buildNavConfig(t) {
@@ -157,6 +158,7 @@ export default function Layout({ children, title }) {
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden sm:block label-ui normal-case">@{user.username}</span>
+            <NotificationBell />
             <LanguageToggle />
             <div className="lg:hidden">
               <ThemeToggle />

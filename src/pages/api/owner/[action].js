@@ -4,6 +4,12 @@ import { requireRole, getOwnerProfileId } from '../../../lib/auth';
 import { withErrorHandler, logActivity, sanitize } from '../../../lib/api';
 import { generateQrToken } from '../../../lib/qrToken';
 import { assertOwnerCanAddUnit } from '../../../lib/ownerLimits';
+import {
+  notifyMaintenanceMessage,
+  notifyMaintenanceStatus,
+  notifyPaymentStatusChange,
+  notifyPaymentGenerated,
+} from '../../../lib/notifications';
 
 export default withErrorHandler(async function handler(req, res) {
   const user = await requireRole(req, 'superadmin', 'owner');
@@ -337,12 +343,14 @@ async function updatePayment(req, res, user, ownerId) {
   const payment = await queryOne('SELECT * FROM payments WHERE id=$1 AND owner_id=$2', [id, ownerId]);
   if (!payment) return res.status(404).json({ error: 'Payment not found' });
 
+  const oldStatus = payment.status;
   const paidDate = status === 'paid' ? (paid_date || new Date().toISOString().slice(0, 10)) : null;
   await execute(
     'UPDATE payments SET status=$1,payment_method=$2,paid_date=$3,notes=$4,recorded_by=$5,updated_at=NOW() WHERE id=$6',
     [status, payment_method || null, paidDate, notes ? sanitize(notes) : null, user.id, id]
   );
   await logActivity(user.id, 'payment_update', 'payment', id, `Payment marked ${status}`);
+  await notifyPaymentStatusChange(payment, status, oldStatus);
   res.json({ success: true });
 }
 
@@ -367,6 +375,7 @@ async function generatePayments(req, res, user, ownerId) {
         [lease.id, lease.tenant_id, lease.unit_id, lease.property_id, ownerId,
          lease.monthly_rent_usd, month, month + '-01']
       );
+      await notifyPaymentGenerated(lease.tenant_id, ownerId, month, lease.monthly_rent_usd);
       created++;
     }
   }
@@ -410,7 +419,7 @@ async function getMaintenanceDetail(req, res, ownerId) {
 
 async function updateMaintenance(req, res, user, ownerId) {
   const { id, status, assigned_technician } = req.body || {};
-  const mr = await queryOne('SELECT id FROM maintenance_requests WHERE id=$1 AND owner_id=$2', [id, ownerId]);
+  const mr = await queryOne('SELECT id, status FROM maintenance_requests WHERE id=$1 AND owner_id=$2', [id, ownerId]);
   if (!mr) return res.status(404).json({ error: 'Request not found' });
 
   await execute(
@@ -421,6 +430,7 @@ async function updateMaintenance(req, res, user, ownerId) {
     [status || null, assigned_technician ? sanitize(assigned_technician.trim()) : null, id]
   );
   await logActivity(user.id, 'maintenance_update', 'maintenance', id, `Status updated to ${status}`);
+  if (status && status !== mr.status) await notifyMaintenanceStatus(id, status);
   res.json({ success: true });
 }
 
@@ -436,5 +446,6 @@ async function sendMessage(req, res, user, ownerId) {
     [request_id, user.id, user.role, sanitize(message.trim())]
   );
   await execute('UPDATE maintenance_requests SET updated_at=NOW() WHERE id=$1', [request_id]);
+  await notifyMaintenanceMessage(request_id, user.id, user.role);
   res.status(201).json({ success: true });
 }
