@@ -37,7 +37,7 @@ export default function PropertiesPage() {
   // Forms
   const [propForm, setPropForm] = useState({ name:'', district: DEFAULT_DISTRICT, address:'', type:'apartment', description:'' });
   const [unitForm, setUnitForm] = useState({ unit_number:'', floor:1, bedrooms:2, has_kitchen:true, toilets:1, is_furnished:false, monthly_rent_usd:'', notes:'' });
-  const [tenantForm, setTenantForm] = useState({ username:'', password:'', full_name:'', phone:'', email:'', unit_id:'', monthly_rent_usd:'', deposit_usd:'', start_date: new Date().toISOString().slice(0,10), end_date:'', national_id:'', emergency_contact:'' });
+  const [tenantForm, setTenantForm] = useState({ full_name:'', phone:'', email:'', unit_id:'', monthly_rent_usd:'', deposit_usd:'', start_date: new Date().toISOString().slice(0,10), end_date:'', national_id:'', emergency_contact:'' });
 
   const loadProperties = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -91,17 +91,17 @@ export default function PropertiesPage() {
   }
 
   async function handleRegisterTenant() {
-    const { username, password, full_name, unit_id, monthly_rent_usd, start_date } = tenantForm;
-    if (!username || !password || !full_name || !unit_id || !monthly_rent_usd || !start_date) {
-      return toast.error('All required fields must be filled');
+    const { full_name, unit_id, monthly_rent_usd, start_date } = tenantForm;
+    if (!full_name || !unit_id || !monthly_rent_usd || !start_date) {
+      return toast.error('Name, unit, rent, and lease start are required');
     }
     setSaving(true);
     try {
       const res = await apiFetch('/api/owner/tenants', { method: 'POST', body: tenantForm });
-      toast.success(`${full_name} registered successfully!`);
+      toast.success(`${full_name} registered — share the unit QR code for portal access`);
       setAddTenantOpen(false);
       setChecklistCtx({ unitId: unit_id, tenantId: res.tenantId });
-      setTenantForm({ username:'', password:'', full_name:'', phone:'', email:'', unit_id:'', monthly_rent_usd:'', deposit_usd:'', start_date: new Date().toISOString().slice(0,10), end_date:'', national_id:'', emergency_contact:'' });
+      setTenantForm({ full_name:'', phone:'', email:'', unit_id:'', monthly_rent_usd:'', deposit_usd:'', start_date: new Date().toISOString().slice(0,10), end_date:'', national_id:'', emergency_contact:'' });
       loadUnits(selectedProp.id);
     } catch (e) { toast.error(e.message); }
     finally { setSaving(false); }
@@ -487,12 +487,9 @@ export default function PropertiesPage() {
         {/* Register Tenant Modal */}
         <Modal open={addTenantOpen} onClose={() => setAddTenantOpen(false)} title="Register Tenant" large
           footer={<><Button variant="secondary" onClick={() => setAddTenantOpen(false)}>Cancel</Button><Button onClick={handleRegisterTenant} disabled={saving}>{saving ? 'Registering...' : 'Register Tenant'}</Button></>}>
+          <p className="text-[13px] text-text-3 mb-4">Tenants access their portal by scanning the unit QR code — no login password needed.</p>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Full Name *" value={tenantForm.full_name} onChange={e => setTenantForm(f => ({ ...f, full_name: e.target.value }))} placeholder="Mohamed Abdi Nur" />
-            <Input label="Username *" value={tenantForm.username} onChange={e => setTenantForm(f => ({ ...f, username: e.target.value }))} placeholder="mohamed" autoComplete="off" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Password *" type="password" value={tenantForm.password} onChange={e => setTenantForm(f => ({ ...f, password: e.target.value }))} placeholder="Min 8 characters" autoComplete="new-password" />
             <Input label="Phone" value={tenantForm.phone} onChange={e => setTenantForm(f => ({ ...f, phone: e.target.value }))} placeholder="+252618..." />
           </div>
           <div className="grid grid-cols-2 gap-4">

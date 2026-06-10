@@ -59,7 +59,7 @@ export default function TenantsPage() {
                             <Avatar name={row.full_name} size="sm" />
                             <div>
                               <div className="font-semibold">{row.full_name}</div>
-                              <div className="text-xs text-text-3">@{row.username}</div>
+                              <div className="text-xs text-text-3">QR portal access</div>
                             </div>
                           </div>
                         </td>

@@ -1,9 +1,11 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { query, queryOne, execute } from '../../../lib/db';
 import { requireRole, getOwnerProfileId } from '../../../lib/auth';
 import { withErrorHandler, logActivity, sanitize } from '../../../lib/api';
 import { generateQrToken } from '../../../lib/qrToken';
 import { assertOwnerCanAddUnit } from '../../../lib/ownerLimits';
+import { makeUniqueTenantUsername } from '../../../lib/tenantCredentials';
 import {
   notifyMaintenanceMessage,
   notifyMaintenanceStatus,
@@ -260,11 +262,11 @@ async function getTenants(res, ownerId) {
 }
 
 async function createTenant(req, res, user, ownerId) {
-  const { username, password, full_name, phone, email, unit_id, start_date, end_date,
+  const { full_name, phone, email, unit_id, start_date, end_date,
     monthly_rent_usd, deposit_usd, national_id, emergency_contact, emergency_phone } = req.body || {};
 
-  if (!username || !password || !full_name || !unit_id || !monthly_rent_usd || !start_date) {
-    return res.status(400).json({ error: 'Required fields missing' });
+  if (!full_name || !unit_id || !monthly_rent_usd || !start_date) {
+    return res.status(400).json({ error: 'Name, unit, rent, and lease start are required' });
   }
 
   const unit = await queryOne(
@@ -274,20 +276,23 @@ async function createTenant(req, res, user, ownerId) {
   if (!unit) return res.status(404).json({ error: 'Unit not found' });
   if (unit.status === 'occupied') return res.status(409).json({ error: 'Unit is already occupied' });
 
-  const existing = await queryOne('SELECT id FROM users WHERE username=$1', [username.toLowerCase().trim()]);
-  if (existing) return res.status(409).json({ error: 'Username already taken' });
-
-  const hash = await bcrypt.hash(password, 12);
+  const username = await makeUniqueTenantUsername(full_name);
+  const hash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
   const client = (await import('../../../lib/db')).getDb();
   const conn = await client.connect();
 
   try {
     await conn.query('BEGIN');
     const { rows: [newUser] } = await conn.query(
-      `INSERT INTO users (username,password_hash,role,full_name,phone,email)
-       VALUES ($1,$2,'tenant',$3,$4,$5) RETURNING id`,
-      [sanitize(username.toLowerCase().trim()), hash, sanitize(full_name.trim()),
-       phone ? sanitize(phone.trim()) : null, email ? sanitize(email.trim()) : null]
+      `INSERT INTO users (username, password_hash, role, full_name, phone, email, is_active)
+       VALUES ($1, $2, 'tenant', $3, $4, $5, false) RETURNING id`,
+      [
+        username,
+        hash,
+        sanitize(full_name.trim()),
+        phone ? sanitize(phone.trim()) : null,
+        email ? String(email).trim().toLowerCase() : null,
+      ]
     );
     const { rows: [tenant] } = await conn.query(
       `INSERT INTO tenants (user_id,unit_id,owner_id,national_id,emergency_contact,emergency_phone)
