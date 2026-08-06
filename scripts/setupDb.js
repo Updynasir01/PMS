@@ -11,7 +11,7 @@ const pool = new Pool({
 });
 
 async function setup() {
-  console.log('🔧 Setting up PropSync PostgreSQL database...\n');
+  console.log('🔧 Setting up eNuzul PostgreSQL database...\n');
 
   const client = await pool.connect();
   try {

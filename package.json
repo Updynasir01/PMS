@@ -1,7 +1,7 @@
 {
-  "name": "propsync",
+  "name": "enuzul",
   "version": "1.0.0",
-  "description": "PropSync - Mogadishu Property Management System",
+  "description": "eNuzul - Mogadishu Property Management System",
   "private": true,
   "scripts": {
     "dev": "next dev",

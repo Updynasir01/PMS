@@ -190,7 +190,7 @@ export default function LeaseSignPanel({ tenantId, role, apiBase, qrToken, fetch
 
       {doc.status === 'fully_signed' && (
         <p className="text-sm text-status-green bg-status-green-dim border border-status-green/20 rounded-md px-3 py-2">
-          Both parties signed. The final PDF is stored in PropSync — download anytime.
+          Both parties signed. The final PDF is stored in eNuzul — download anytime.
         </p>
       )}
 

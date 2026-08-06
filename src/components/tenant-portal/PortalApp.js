@@ -280,7 +280,7 @@ export default function PortalApp({ token }) {
           {hasTenant && lease && (
             <section className="surface-card">
               <p className="label-ui mb-3">Lease agreement — sign online</p>
-              <p className="text-[12px] text-text-3 mb-4">Draw your signature here; it is saved in PropSync (not only on your phone).</p>
+              <p className="text-[12px] text-text-3 mb-4">Draw your signature here; it is saved in eNuzul (not only on your phone).</p>
               <LeaseSignPanel
                 role="tenant"
                 apiBase="/api/public/lease-document"

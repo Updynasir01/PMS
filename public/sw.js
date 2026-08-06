@@ -1,4 +1,4 @@
-const CACHE = 'propsync-v1';
+const CACHE = 'enuzul-v1';
 const STATIC = ['/', '/login', '/manifest.json'];
 
 self.addEventListener('install', e => {

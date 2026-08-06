@@ -70,7 +70,7 @@ export default function Layout({ children, title }) {
     <aside className="w-64 surface-panel border-r-[0.5px] border-border flex flex-col h-full">
       <div className="px-edge py-6 border-b-[0.5px] border-border">
         <div className="font-display text-[28px] leading-none text-text-1">
-          Prop<span className="text-accent">Sync</span>
+          e<span className="text-accent">Nuzul</span>
         </div>
         <p className="label-ui mt-2">{t.mogadishuPropertyManagement}</p>
       </div>

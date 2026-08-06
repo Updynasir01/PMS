@@ -37,7 +37,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <Head><title>PropSync — Login</title></Head>
+      <Head><title>eNuzul — Login</title></Head>
       <div className="min-h-screen surface-page flex items-center justify-center p-edge relative overflow-hidden">
         <div className="absolute top-5 right-5 z-20">
           <ThemeToggle />
@@ -53,8 +53,8 @@ export default function LoginPage() {
         <div className="w-full max-w-md relative z-10 animate-up">
           <div className="text-center mb-8">
             <div className="font-display text-display-hero mb-2">
-              <span className="text-text-1">Prop</span>
-              <span className="text-accent">Sync</span>
+              <span className="text-text-1">e</span>
+              <span className="text-accent">Nuzul</span>
             </div>
             <p className="label-ui">Mogadishu Property Management</p>
           </div>

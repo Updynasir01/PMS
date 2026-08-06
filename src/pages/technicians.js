@@ -44,7 +44,7 @@ export default function TechniciansPage() {
 
   return (
     <>
-      <Head><title>PropSync — {t.technicians}</title></Head>
+      <Head><title>eNuzul — {t.technicians}</title></Head>
       <Layout title={t.technicians}>
         <div className="animate-up space-y-6">
           <div className="flex justify-between">

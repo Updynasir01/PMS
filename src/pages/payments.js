@@ -82,7 +82,7 @@ export default function PaymentsPage() {
 
   return (
     <>
-      <Head><title>PropSync — Payments</title></Head>
+      <Head><title>eNuzul — Payments</title></Head>
       <Layout title="Payments">
         <div className="animate-up space-y-6">
           <div className="flex items-center justify-between">

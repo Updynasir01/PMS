@@ -32,7 +32,7 @@ export default function TenantsPage() {
 
   return (
     <>
-      <Head><title>PropSync — Tenants</title></Head>
+      <Head><title>eNuzul — Tenants</title></Head>
       <Layout title="Tenants">
         <div className="animate-up space-y-6">
           <div>

@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * PropSync — run all migrations for features 1–10 (and caretaker role).
+ * eNuzul — run all migrations for features 1–10 (and caretaker role).
  * Usage: node scripts/migrateDb.js
  * Requires DATABASE_URL in .env.local
  */
@@ -141,7 +141,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_user_ref ON notifications(us
 `;
 
 async function run() {
-  console.log('🔧 Running PropSync database migrations...\n');
+  console.log('🔧 Running eNuzul database migrations...\n');
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

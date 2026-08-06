@@ -263,7 +263,7 @@ export async function ensureDailyAlerts(user) {
         await createNotification(user.id, {
           type: 'trial_ending',
           title: days === 0 ? 'Trial ends today' : `Trial ends in ${days} day${days === 1 ? '' : 's'}`,
-          body: `Your PropSync trial ends ${end}`,
+          body: `Your eNuzul trial ends ${end}`,
           link: '/',
           refKey: `trial_${today}`,
         });

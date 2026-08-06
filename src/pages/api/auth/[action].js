@@ -37,18 +37,18 @@ async function login(req, res) {
     );
     if (owner?.plan_status === 'suspended') {
       return res.status(403).json({
-        error: 'Your account is suspended. Contact PropSync support.',
+        error: 'Your account is suspended. Contact eNuzul support.',
       });
     }
     const today = new Date().toISOString().slice(0, 10);
     if (owner?.plan_status === 'trial' && owner.trial_end && String(owner.trial_end).slice(0, 10) < today) {
       return res.status(403).json({
-        error: `Your trial ended on ${String(owner.trial_end).slice(0, 10)}. Contact PropSync to continue.`,
+        error: `Your trial ended on ${String(owner.trial_end).slice(0, 10)}. Contact eNuzul to continue.`,
       });
     }
     if (owner?.plan_status === 'expired') {
       return res.status(403).json({
-        error: 'Your subscription has expired. Contact PropSync support.',
+        error: 'Your subscription has expired. Contact eNuzul support.',
       });
     }
   }

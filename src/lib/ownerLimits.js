@@ -4,7 +4,7 @@ import { queryOne } from './db';
 import { formatMaxUnits } from './plans';
 
 const UNIT_LIMIT_MSG =
-  'You have reached your plan unit limit. Contact PropSync admin to upgrade your subscription.';
+  'You have reached your plan unit limit. Contact eNuzul admin to upgrade your subscription.';
 
 export async function getOwnerUnitUsage(ownerId) {
   const row = await queryOne(

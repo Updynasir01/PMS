@@ -37,7 +37,7 @@ function addFooter(doc, pageNum, totalPages, generatedAt) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(MUTED.r, MUTED.g, MUTED.b);
-  doc.text('PropSync — Mogadishu Property Management', M, y);
+  doc.text('eNuzul — Mogadishu Property Management', M, y);
   doc.text(`Generated ${generatedAt}`, M, y + 10);
   doc.text(`Page ${pageNum} of ${totalPages}`, PAGE_W - M, y, { align: 'right' });
 }
@@ -58,7 +58,7 @@ function drawHeader(doc, data) {
 
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
-  doc.text('PropSync', M + 34, 40);
+  doc.text('eNuzul', M + 34, 40);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('Mogadishu Property Management', M + 34, 54);
@@ -263,7 +263,7 @@ function signatureBlock(doc, y, role, name, sig) {
     doc.line(x + 10, y + 44, x + blockW - 10, y + 44);
     doc.setFontSize(8);
     doc.setTextColor(MUTED.r, MUTED.g, MUTED.b);
-    doc.text('Sign in PropSync or print & sign', x + 10, y + 52);
+    doc.text('Sign in eNuzul or print & sign', x + 10, y + 52);
     doc.text('Date: _______________', x + 10, y + 62);
   }
 }
@@ -345,10 +345,10 @@ export async function buildLeasePdf(data, signatures = {}) {
   y = sectionTitle(doc, y, 4, 'Rules & obligations');
   y = clauseList(doc, y, [
     'The Tenant shall use the premises solely for residential purposes and keep the unit in good condition.',
-    'The Tenant is responsible for minor day-to-day repairs; major structural or utility faults shall be reported to the Landlord via PropSync maintenance.',
+    'The Tenant is responsible for minor day-to-day repairs; major structural or utility faults shall be reported to the Landlord via eNuzul maintenance.',
     'Subletting, assignment, or transfer of this lease is prohibited without prior written consent from the Landlord.',
     'The Landlord shall provide at least twenty-four (24) hours notice before entering the unit, except in emergencies.',
-    'The Tenant must report maintenance issues promptly through the PropSync portal or designated contact channel.',
+    'The Tenant must report maintenance issues promptly through the eNuzul portal or designated contact channel.',
     'Either party may terminate this Agreement according to local law and any notice period agreed in writing.',
     'Security deposit shall be returned within a reasonable period after move-out, less lawful deductions for damage or unpaid rent.',
   ]);

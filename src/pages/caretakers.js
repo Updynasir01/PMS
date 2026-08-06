@@ -48,7 +48,7 @@ export default function CaretakersPage() {
 
   return (
     <>
-      <Head><title>PropSync — {t.caretakers}</title></Head>
+      <Head><title>eNuzul — {t.caretakers}</title></Head>
       <Layout title={t.caretakers}>
         <div className="animate-up space-y-6">
           <div className="flex justify-between">

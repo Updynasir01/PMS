@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 /** How often pages poll for new data while the tab is visible */
 export const LIVE_REFRESH_MS = 10000;
 
-export const LIVE_REFRESH_EVENT = 'propsync:refresh';
+export const LIVE_REFRESH_EVENT = 'enuzul:refresh';
 
 /** Trigger an immediate silent refresh on all mounted pages */
 export function dispatchLiveRefresh() {

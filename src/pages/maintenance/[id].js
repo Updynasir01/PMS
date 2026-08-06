@@ -118,7 +118,7 @@ export default function MaintenanceDetailPage() {
 
   return (
     <>
-      <Head><title>PropSync — {data.title}</title></Head>
+      <Head><title>eNuzul — {data.title}</title></Head>
       <Layout title="Maintenance Detail">
         <div className="animate-up">
           {/* Back */}

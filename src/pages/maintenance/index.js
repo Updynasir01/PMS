@@ -51,7 +51,7 @@ export default function MaintenancePage() {
 
   return (
     <>
-      <Head><title>PropSync — Maintenance</title></Head>
+      <Head><title>eNuzul — Maintenance</title></Head>
       <Layout title="Maintenance">
         <div className="animate-up space-y-6">
           <div className="flex items-center justify-between">

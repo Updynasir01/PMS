@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 const ThemeContext = createContext({ theme: 'light', setTheme: () => {}, toggleTheme: () => {} });
 
-const STORAGE_KEY = 'propsync-theme';
+const STORAGE_KEY = 'enuzul-theme';
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState('light');

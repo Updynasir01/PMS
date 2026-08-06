@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { translations } from '../lib/translations';
 
 const LanguageContext = createContext(null);
-const STORAGE_KEY = 'propsync-lang';
+const STORAGE_KEY = 'enuzul-lang';
 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState('en');

@@ -178,7 +178,7 @@ export default function PropertiesPage() {
 
   return (
     <>
-      <Head><title>PropSync — Properties</title></Head>
+      <Head><title>eNuzul — Properties</title></Head>
       <Layout title="Properties">
         <div className="animate-up">
           {/* Header */}

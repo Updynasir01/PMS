@@ -119,7 +119,7 @@ export default function OwnersPage() {
 
   return (
     <>
-      <Head><title>PropSync — Owners</title></Head>
+      <Head><title>eNuzul — Owners</title></Head>
       <Layout title="Property Owners">
         <div className="animate-up space-y-6 min-w-0 max-w-full">
           <div className="flex items-center justify-between">

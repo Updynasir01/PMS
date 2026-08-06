@@ -1,7 +1,7 @@
 {
-  "name": "PropSync",
-  "short_name": "PropSync",
-  "description": "Mogadishu Property Management System",
+  "name": "eNuzul",
+  "short_name": "eNuzul",
+  "description": "Mogadishu Property Management System — eNuzul.com",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f4f4f8",

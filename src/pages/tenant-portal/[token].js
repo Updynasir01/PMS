@@ -10,7 +10,7 @@ export default function TenantPortalPage() {
   return (
     <ThemeProvider>
       <Head>
-        <title>PropSync — My Unit</title>
+        <title>eNuzul — My Unit</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="robots" content="noindex" />
       </Head>
@@ -19,7 +19,7 @@ export default function TenantPortalPage() {
           {token ? <PortalApp token={token} /> : null}
         </div>
         <p className="text-center text-[11px] text-text-3 uppercase tracking-wide pt-6 max-w-lg mx-auto">
-          Powered by PropSync
+          Powered by eNuzul · eNuzul.com
         </p>
       </div>
     </ThemeProvider>

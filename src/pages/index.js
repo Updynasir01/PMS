@@ -21,7 +21,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Head><title>PropSync — Dashboard</title></Head>
+      <Head><title>eNuzul — Dashboard</title></Head>
       <Layout title="Dashboard">
         {dashboards[user.role] || <div className="text-text-3">Unknown role</div>}
       </Layout>

@@ -13,7 +13,7 @@ const pool = new Pool({
 });
 
 async function seed() {
-  console.log('🌱 Seeding PropSync demo data...\n');
+  console.log('🌱 Seeding eNuzul demo data...\n');
   const client = await pool.connect();
 
   try {
@@ -33,7 +33,7 @@ async function seed() {
     const { rows: [admin] } = await client.query(
       `INSERT INTO users (username,password_hash,role,full_name,phone,email)
        VALUES ($1,$2,'superadmin',$3,$4,$5) RETURNING id`,
-      ['admin', hash('Admin@2026!'), 'PropSync Admin', '+252612000001', 'admin@propsync.so']
+      ['admin', hash('Admin@2026!'), 'eNuzul Admin', '+252612000001', 'admin@enuzul.com']
     );
 
     const { rows: [owner1User] } = await client.query(

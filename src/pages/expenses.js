@@ -63,7 +63,7 @@ export default function ExpensesPage() {
 
   return (
     <>
-      <Head><title>PropSync — {t.expenses}</title></Head>
+      <Head><title>eNuzul — {t.expenses}</title></Head>
       <Layout title={t.expenses}>
         <div className="animate-up space-y-6">
           <div className="flex justify-between items-center">
