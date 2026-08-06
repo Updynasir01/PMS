@@ -48,7 +48,7 @@ export default function App({ Component, pageProps }) {
           <div className="text-center animate-fade">
             <Spinner size="lg" />
             <div className="font-display text-[32px] text-text-1 mt-6">
-              Prop<span className="text-accent">Sync</span>
+              e<span className="text-accent">Nuzul</span>
             </div>
             <p className="label-ui mt-2 normal-case">Loading</p>
           </div>

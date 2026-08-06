@@ -230,7 +230,7 @@ export default function PortalApp({ token }) {
 
       <header className="text-center mb-4">
         <div className="font-display text-[26px] text-text-1">
-          Prop<span className="text-accent">Sync</span>
+          e<span className="text-accent">Nuzul</span>
         </div>
         <h1 className="font-display text-[20px] text-text-1 mt-2">Unit {unit.unit_number}</h1>
         <p className="text-[13px] text-text-2">{property.name} · {property.district}</p>
