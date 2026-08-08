@@ -44,12 +44,12 @@ export function IconBox({ children, tint = 'purple', className = '' }) {
   );
 }
 
-/** Unit/property feature chips — tinted backgrounds, readable in light & dark */
+/** Unit/property feature chips — quiet premium style */
 const featurePillStyles = {
-  bedroom: 'bg-status-blue-dim text-status-blue border-status-blue/25',
-  bath: 'bg-status-amber-dim text-status-amber border-status-amber/25',
-  furnished: 'bg-accent-dim text-accent border-accent/25',
-  kitchen: 'bg-status-green-dim text-status-green border-status-green/25',
+  bedroom: 'bg-surface text-text-2 border-border',
+  bath: 'bg-surface text-text-2 border-border',
+  furnished: 'bg-accent-dim text-accent border-accent/20',
+  kitchen: 'bg-surface text-text-2 border-border',
   neutral: 'bg-surface text-text-2 border-border',
   off: 'bg-page text-text-3 border-border',
 };
@@ -57,9 +57,9 @@ const featurePillStyles = {
 export function FeaturePill({ icon, children, variant = 'neutral', className = '' }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-pill text-[12px] font-semibold border-[0.5px] whitespace-nowrap ${featurePillStyles[variant] || featurePillStyles.neutral} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-medium border-[0.5px] whitespace-nowrap ${featurePillStyles[variant] || featurePillStyles.neutral} ${className}`}
     >
-      {icon && <span className="text-[13px] leading-none" aria-hidden>{icon}</span>}
+      {icon && <span className="inline-flex opacity-70 shrink-0" aria-hidden>{icon}</span>}
       {children}
     </span>
   );
@@ -419,9 +419,13 @@ export function ProgressBar({ value, max, color = 'purple' }) {
 export function EmptyState({ icon, title, description, action }) {
   return (
     <div className="text-center py-12">
-      <div className="text-4xl mb-3 opacity-40">{icon || '📭'}</div>
+      {icon && (
+        <div className="mx-auto mb-4 w-12 h-12 rounded-sm bg-accent-muted text-accent flex items-center justify-center">
+          {typeof icon === 'string' ? <span className="text-xl opacity-70">{icon}</span> : icon}
+        </div>
+      )}
       <h3 className="font-display text-[20px] text-text-2 mb-1">{title}</h3>
-      {description && <p className="text-[13px] text-text-3">{description}</p>}
+      {description && <p className="text-[13px] text-text-3 max-w-xs mx-auto">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );

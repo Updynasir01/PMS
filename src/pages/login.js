@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from './_app';
 import { Button, Input, Spinner, ToastContainer, ThemeToggle } from '../components/ui';
+import BrandLogo from '../components/BrandLogo';
 import Head from 'next/head';
 
 export default function LoginPage() {
@@ -45,18 +46,15 @@ export default function LoginPage() {
 
         <div className="absolute inset-0 pointer-events-none">
           <div
-            className="absolute top-0 right-0 w-[560px] h-[380px] rounded-full opacity-[0.07]"
+            className="absolute top-0 right-0 w-[560px] h-[380px] rounded-full opacity-[0.12]"
             style={{ background: 'radial-gradient(ellipse, var(--accent), transparent 70%)' }}
           />
         </div>
 
         <div className="w-full max-w-md relative z-10 animate-up">
           <div className="text-center mb-8">
-            <div className="font-display text-display-hero mb-2">
-              <span className="text-text-1">e</span>
-              <span className="text-accent">Nuzul</span>
-            </div>
-            <p className="label-ui">Mogadishu Property Management</p>
+            <BrandLogo height={72} className="mx-auto" priority />
+            <p className="label-ui mt-4">Mogadishu Property Management</p>
           </div>
 
           <form onSubmit={handleLogin} className="surface-card rounded-xl shadow-2xl">

@@ -41,7 +41,7 @@ export async function downloadReceiptPdf(data) {
   y += 10;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(34, 139, 34);
+  doc.setTextColor(47, 79, 68);
   doc.text('PAID', margin, y);
   doc.setTextColor(0, 0, 0);
   y += 40;

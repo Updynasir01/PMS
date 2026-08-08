@@ -4,6 +4,7 @@ import { useAuth } from '../../pages/_app';
 import { Avatar, ToastContainer, ThemeToggle, IconBox } from '../ui';
 import { LanguageToggle } from '../ui/LanguageToggle';
 import NotificationBell from '../NotificationBell';
+import BrandLogo from '../BrandLogo';
 import { useTranslation } from '../../context/LanguageContext';
 
 function buildNavConfig(t) {
@@ -68,11 +69,9 @@ export default function Layout({ children, title }) {
 
   const Sidebar = () => (
     <aside className="w-64 surface-panel border-r-[0.5px] border-border flex flex-col h-full">
-      <div className="px-edge py-6 border-b-[0.5px] border-border">
-        <div className="font-display text-[28px] leading-none text-text-1">
-          e<span className="text-accent">Nuzul</span>
-        </div>
-        <p className="label-ui mt-2">{t.mogadishuPropertyManagement}</p>
+      <div className="px-edge py-5 border-b-[0.5px] border-border">
+        <BrandLogo height={44} className="mx-auto block" />
+        <p className="label-ui mt-3 text-center">{t.mogadishuPropertyManagement}</p>
       </div>
 
       <div className="px-4 py-4 border-b-[0.5px] border-border flex items-center gap-3">

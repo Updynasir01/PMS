@@ -1,9 +1,9 @@
 'use client';
 
-const BRAND = { r: 108, g: 99, b: 255 };
-const INK = { r: 28, g: 28, b: 36 };
-const MUTED = { r: 100, g: 100, b: 115 };
-const LIGHT = { r: 245, g: 245, b: 250 };
+const BRAND = { r: 47, g: 79, b: 68 };
+const INK = { r: 20, g: 32, b: 28 };
+const MUTED = { r: 74, g: 92, b: 85 };
+const LIGHT = { r: 243, g: 246, b: 244 };
 const PAGE_W = 595.28;
 const PAGE_H = 841.89;
 const M = 48;
@@ -26,7 +26,7 @@ function contractRef(data) {
   const t = data.tenant?.full_name || 'T';
   const u = data.unit?.unit_number || '0';
   const d = (data.contractDate || new Date().toISOString().slice(0, 10)).replace(/-/g, '');
-  return `PS-${d}-${u}-${t.slice(0, 3).toUpperCase()}`;
+  return `EN-${d}-${u}-${t.slice(0, 3).toUpperCase()}`;
 }
 
 function addFooter(doc, pageNum, totalPages, generatedAt) {
@@ -54,7 +54,7 @@ function drawHeader(doc, data) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(BRAND.r, BRAND.g, BRAND.b);
-  doc.text('PS', M + 9.5, 47);
+  doc.text('EN', M + 9.5, 47);
 
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Badge, Button, Select, Input, Textarea, Spinner, fmt, FeaturePill, EmptyState, Card,
 } from '../ui';
+import BrandLogo from '../BrandLogo';
 import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
 import { useAutoRefresh, dispatchLiveRefresh } from '../../hooks/useAutoRefresh';
 import { downloadReceiptPdf } from '../../lib/generateReceipt';
@@ -229,10 +230,8 @@ export default function PortalApp({ token }) {
       )}
 
       <header className="text-center mb-4">
-        <div className="font-display text-[26px] text-text-1">
-          e<span className="text-accent">Nuzul</span>
-        </div>
-        <h1 className="font-display text-[20px] text-text-1 mt-2">Unit {unit.unit_number}</h1>
+        <BrandLogo height={48} className="mx-auto" />
+        <h1 className="font-display text-[20px] text-text-1 mt-3">Unit {unit.unit_number}</h1>
         <p className="text-[13px] text-text-2">{property.name} · {property.district}</p>
         {hasTenant && (
           <p className="text-[12px] text-text-3 mt-1">Welcome, {tenant.full_name}</p>

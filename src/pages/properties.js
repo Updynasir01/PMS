@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useCallback } from 'react';
 import Layout from '../components/layout/Layout';
-import { Card, Badge, Button, Modal, Input, Select, Textarea, Checkbox, EmptyState, Spinner, ProgressBar, fmt, apiFetch, toast, FeaturePill } from '../components/ui';
+import { Badge, Button, Modal, Input, Select, Textarea, Checkbox, EmptyState, Spinner, ProgressBar, fmt, apiFetch, toast, FeaturePill, IconBox, PageHeader } from '../components/ui';
+import {
+  IconBuilding, IconHome, IconBed, IconBath, IconKitchen, IconSofa, IconUser, IconCheck, IconAlert,
+  IconQr, IconPlus, IconMapPin, IconArrowRight, PROPERTY_TYPE_ICONS,
+} from '../components/Icons';
 import { useAuth } from './_app';
 import Head from 'next/head';
 import UnitPhotosModal from '../components/UnitPhotosModal';
@@ -9,11 +12,23 @@ import MoveInChecklistModal from '../components/MoveInChecklistModal';
 import LeaseSignPanel from '../components/LeaseSignPanel';
 import { MOGADISHU_DISTRICTS, DEFAULT_DISTRICT } from '../lib/mogadishuDistricts';
 import { useAutoRefresh, dispatchLiveRefresh } from '../hooks/useAutoRefresh';
-const TYPE_ICONS = { apartment:'🏢', villa:'🏡', commercial:'🏪', office:'🏬', mixed:'🏗️' };
+
+function UnitMeta({ unit }) {
+  return (
+    <div className="flex items-center gap-3 text-[11px] text-text-3 mt-3">
+      <span className="inline-flex items-center gap-1"><IconBed size={13} />{unit.bedrooms}</span>
+      <span className="inline-flex items-center gap-1"><IconBath size={13} />{unit.toilets}</span>
+      {unit.has_kitchen && <span className="inline-flex items-center gap-1"><IconKitchen size={13} />Kit</span>}
+      <span className="inline-flex items-center gap-1 opacity-80">
+        <IconSofa size={13} />{unit.is_furnished ? 'Furn.' : 'Unfurn.'}
+      </span>
+    </div>
+  );
+}
+
 
 export default function PropertiesPage() {
   const { user } = useAuth();
-  const router = useRouter();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProp, setSelectedProp] = useState(null);
@@ -181,188 +196,224 @@ export default function PropertiesPage() {
       <Head><title>eNuzul — Properties</title></Head>
       <Layout title="Properties">
         <div className="animate-up">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold">Properties</h2>
-              <p className="text-text-3 text-sm">{properties.length} properties under management</p>
-            </div>
-            {(user?.role === 'owner' || user?.role === 'superadmin') && (
-              <Button onClick={() => setAddPropOpen(true)}>
-                <span className="text-lg">+</span> Add Property
-              </Button>
-            )}
-          </div>
+          <PageHeader
+            title="Properties"
+            subtitle={`${properties.length} under management`}
+            action={
+              (user?.role === 'owner' || user?.role === 'superadmin') ? (
+                <Button onClick={() => setAddPropOpen(true)}>
+                  <IconPlus size={16} /> Add Property
+                </Button>
+              ) : null
+            }
+          />
 
           {loading ? (
             <div className="flex justify-center py-20"><Spinner size="lg" /></div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Property List */}
-              <div className="space-y-4">
-                {properties.map(p => {
-                  const rate = +p.total_units ? Math.round(+p.occupied_units / +p.total_units * 100) : 0;
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+              {/* Property list */}
+              <div className="lg:col-span-4 space-y-2">
+                {properties.map((p) => {
+                  const rate = +p.total_units ? Math.round((+p.occupied_units / +p.total_units) * 100) : 0;
+                  const TypeIcon = PROPERTY_TYPE_ICONS[p.type] || IconBuilding;
+                  const active = selectedProp?.id === p.id;
                   return (
-                    <Card key={p.id}
+                    <button
+                      key={p.id}
+                      type="button"
                       onClick={() => selectProperty(p)}
-                      className={`cursor-pointer transition-all ${selectedProp?.id === p.id ? 'border-accent bg-accent-muted' : 'hover:border-border-strong'}`}>
-                      <div className="flex items-start gap-3 mb-3">
-                        <span className="text-2xl">{TYPE_ICONS[p.type] || '🏢'}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-display font-bold truncate">{p.name}</div>
-                          <div className="text-xs text-text-3">{p.district} · {p.address}</div>
+                      className={`w-full text-left rounded-sm border-[0.5px] p-4 transition-all duration-200
+                        ${active
+                          ? 'border-accent/40 bg-accent-muted shadow-sm'
+                          : 'border-border bg-card hover:border-accent/25 hover:bg-surface'
+                        }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <IconBox tint={active ? 'purple' : 'neutral'} className="!w-10 !h-10 shrink-0">
+                          <TypeIcon size={18} />
+                        </IconBox>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-display text-[17px] text-text-1 truncate leading-tight">{p.name}</div>
+                          <div className="flex items-center gap-1 mt-1 text-[12px] text-text-3 truncate">
+                            <IconMapPin size={12} className="shrink-0 opacity-70" />
+                            <span className="truncate">{p.district} · {p.address}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 mb-3 text-center">
-                        <div className="bg-surface rounded-lg p-2">
-                          <div className="font-display font-bold">{p.total_units}</div>
-                          <div className="text-xs text-text-3">Total</div>
-                        </div>
-                        <div className="bg-green-900/20 rounded-lg p-2">
-                          <div className="font-display font-bold text-green-400">{p.occupied_units}</div>
-                          <div className="text-xs text-green-700">Occupied</div>
-                        </div>
-                        <div className="bg-amber-900/20 rounded-lg p-2">
-                          <div className="font-display font-bold text-amber-400">{p.vacant_units}</div>
-                          <div className="text-xs text-amber-700">Vacant</div>
-                        </div>
+
+                      <div className="flex items-center gap-3 mt-4 text-[12px] text-text-2">
+                        <span><span className="font-semibold text-text-1">{p.total_units}</span> total</span>
+                        <span className="text-border-strong">·</span>
+                        <span><span className="font-semibold text-accent">{p.occupied_units}</span> occupied</span>
+                        <span className="text-border-strong">·</span>
+                        <span><span className="font-semibold text-text-1">{p.vacant_units}</span> vacant</span>
                       </div>
-                      <ProgressBar value={+p.occupied_units} max={+p.total_units} />
-                      <div className="text-xs text-text-3 mt-1">{rate}% occupied</div>
-                    </Card>
+                      <div className="mt-3">
+                        <ProgressBar value={+p.occupied_units} max={+p.total_units || 1} color="accent" />
+                        <div className="label-ui mt-1.5 normal-case tracking-normal text-text-3">{rate}% occupied</div>
+                      </div>
+                    </button>
                   );
                 })}
                 {!properties.length && (
-                  <Card>
-                    <EmptyState icon="🏢" title="No properties yet" description="Add your first property to get started" />
-                  </Card>
+                  <div className="rounded-sm border-[0.5px] border-border bg-card p-6">
+                    <EmptyState
+                      icon={<IconBuilding size={22} />}
+                      title="No properties yet"
+                      description="Add your first property to get started"
+                    />
+                  </div>
                 )}
               </div>
 
-              {/* Units Panel */}
-              <div className="lg:col-span-2">
+              {/* Units panel */}
+              <div className="lg:col-span-8">
                 {selectedProp ? (
-                  <Card>
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="rounded-sm border-[0.5px] border-border bg-card overflow-hidden">
+                    <div className="flex flex-wrap items-center justify-between gap-3 px-edge py-5 border-b-[0.5px] border-border">
                       <div>
-                        <h3 className="font-display font-bold">{selectedProp.name}</h3>
-                        <p className="text-text-3 text-xs">{units.length} units</p>
+                        <h3 className="font-display text-[22px] text-text-1 leading-tight">{selectedProp.name}</h3>
+                        <p className="text-[13px] text-text-3 mt-0.5">{units.length} units</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => { setAddTenantOpen(true); setTenantForm(f => ({ ...f, unit_id: '' })); }}>
+                        <Button variant="secondary" size="sm" onClick={() => { setAddTenantOpen(true); setTenantForm((f) => ({ ...f, unit_id: '' })); }}>
                           Register Tenant
                         </Button>
                         <Button size="sm" onClick={() => setAddUnitOpen(true)}>
-                          + Add Unit
+                          <IconPlus size={14} /> Add Unit
                         </Button>
                       </div>
                     </div>
+
                     {unitsLoading ? (
-                      <div className="flex justify-center py-10"><Spinner /></div>
+                      <div className="flex justify-center py-16"><Spinner /></div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {units.map(u => (
-                          <div key={u.id}
+                      <div className="p-edge grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {units.map((u) => (
+                          <div
+                            key={u.id}
                             onClick={() => setSelectedUnit(u)}
-                            className={`p-3 rounded-xl border cursor-pointer transition-all hover:-translate-y-0.5
-                              ${u.status === 'occupied' ? 'border-l-2 border-l-green-500 border-border bg-surface'
-                              : u.status === 'vacant' ? 'border-l-2 border-l-amber-500 border-border bg-surface'
-                              : 'border-l-2 border-l-red-500 border-border bg-surface'}`}>
-                            <div className="font-display font-bold text-base mb-1 flex items-center gap-1">
-                              {u.unit_number}
-                              {u.move_in_checklist_done ? <span className="text-status-green text-xs" title="Move-in checklist done">✓</span> : <span className="text-status-amber text-xs" title="No checklist">!</span>}
-                            </div>
-                            <div className="font-semibold text-sm text-accent">{fmt.usd(u.monthly_rent_usd)}<span className="text-text-3 text-xs">/mo</span></div>
-                            {u.tenant_name
-                              ? <div className="text-xs text-text-3 mt-1 truncate">👤 {u.tenant_name}</div>
-                              : <div className="text-xs text-text-3 mt-1">Vacant</div>
-                            }
-                            <div className="flex gap-1.5 mt-2 flex-wrap">
-                              <FeaturePill icon="🛏" variant="bedroom">{u.bedrooms} bed{u.bedrooms !== 1 ? 's' : ''}</FeaturePill>
-                              <FeaturePill icon="🚿" variant="bath">{u.toilets} bath</FeaturePill>
-                              {u.has_kitchen && <FeaturePill icon="🍳" variant="kitchen">Kitchen</FeaturePill>}
-                              <FeaturePill icon="🪑" variant={u.is_furnished ? 'furnished' : 'off'}>{u.is_furnished ? 'Furnished' : 'Unfurnished'}</FeaturePill>
-                            </div>
-                            <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
-                              <Badge status={u.status} />
-                              <Button size="xs" variant="ghost" onClick={(e) => { e.stopPropagation(); setPhotoUnit(u); }}>Photos</Button>
-                              {u.qr_token ? (
-                                <Button size="xs" variant="ghost" onClick={(e) => openQrModal(u, e)}>
-                                  QR Code
-                                </Button>
+                            className="group relative rounded-sm border-[0.5px] border-border bg-page/40 p-4 cursor-pointer transition-all duration-200 hover:border-accent/30 hover:bg-surface"
+                          >
+                            <div className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full"
+                              style={{
+                                background: u.status === 'occupied'
+                                  ? 'var(--accent)'
+                                  : u.status === 'vacant'
+                                    ? 'var(--status-amber)'
+                                    : 'var(--status-red)',
+                              }}
+                            />
+                            <div className="pl-2">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="font-display text-[18px] text-text-1 leading-none">{u.unit_number}</div>
+                                <span
+                                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
+                                    u.move_in_checklist_done
+                                      ? 'bg-status-green-dim text-status-green'
+                                      : 'bg-status-amber-dim text-status-amber'
+                                  }`}
+                                  title={u.move_in_checklist_done ? 'Move-in checklist done' : 'Checklist pending'}
+                                >
+                                  {u.move_in_checklist_done ? <IconCheck size={12} /> : <IconAlert size={12} />}
+                                </span>
+                              </div>
+
+                              <div className="font-display text-[20px] text-accent mt-2 leading-none">
+                                {fmt.usd(u.monthly_rent_usd)}
+                                <span className="text-[11px] font-sans text-text-3 ml-0.5">/mo</span>
+                              </div>
+
+                              {u.tenant_name ? (
+                                <div className="flex items-center gap-1.5 text-[12px] text-text-2 mt-2 truncate">
+                                  <IconUser size={13} className="shrink-0 opacity-60" />
+                                  <span className="truncate">{u.tenant_name}</span>
+                                </div>
                               ) : (
-                                <Button size="xs" variant="ghost" onClick={(e) => { e.stopPropagation(); handleGenerateQr(u); }} disabled={generatingQrId === u.id}>
-                                  {generatingQrId === u.id ? '...' : 'Generate'}
-                                </Button>
+                                <div className="text-[12px] text-text-3 mt-2">Vacant</div>
                               )}
+
+                              <UnitMeta unit={u} />
+
+                              <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t-[0.5px] border-border">
+                                <Badge status={u.status} compact />
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button size="xs" variant="ghost" onClick={(e) => { e.stopPropagation(); setPhotoUnit(u); }}>Photos</Button>
+                                  {u.qr_token ? (
+                                    <Button size="xs" variant="ghost" onClick={(e) => openQrModal(u, e)}>
+                                      <IconQr size={12} /> QR
+                                    </Button>
+                                  ) : (
+                                    <Button size="xs" variant="ghost" onClick={(e) => { e.stopPropagation(); handleGenerateQr(u); }} disabled={generatingQrId === u.id}>
+                                      {generatingQrId === u.id ? '…' : 'QR'}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}
                         {!units.length && (
                           <div className="col-span-full">
-                            <EmptyState icon="🏠" title="No units yet" description="Add the first unit to this property" />
+                            <EmptyState
+                              icon={<IconHome size={22} />}
+                              title="No units yet"
+                              description="Add the first unit to this property"
+                            />
                           </div>
                         )}
                       </div>
                     )}
 
                     {!unitsLoading && units.length > 0 && (
-                      <Card className="mt-4 !p-0 overflow-hidden">
-                        <div className="px-edge py-4 border-b-[0.5px] border-border">
-                          <h3 className="font-display text-[18px] text-text-1">View QR Codes</h3>
-                          <p className="text-[13px] text-text-3 mt-1">
-                            {units.filter((u) => u.qr_token).length} of {units.length} units have QR codes
-                          </p>
+                      <div className="border-t-[0.5px] border-border">
+                        <div className="px-edge py-4 flex items-center justify-between gap-3">
+                          <div>
+                            <h4 className="font-display text-[16px] text-text-1">QR codes</h4>
+                            <p className="text-[12px] text-text-3 mt-0.5">
+                              {units.filter((u) => u.qr_token).length} of {units.length} ready
+                            </p>
+                          </div>
                         </div>
-                        <ul className="divide-y-[0.5px] divide-border">
+                        <ul className="divide-y-[0.5px] divide-border border-t-[0.5px] border-border">
                           {units.map((u) => (
-                            <li
-                              key={u.id}
-                              className="flex items-center justify-between gap-3 px-edge py-3 hover:bg-surface/80 transition-colors duration-200"
-                            >
-                              <div className="min-w-0">
-                                <div className="font-semibold text-[14px] text-text-1">{u.unit_number}</div>
-                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                  <span className="text-[12px] text-text-3">{u.tenant_name || 'Vacant'}</span>
-                                  <Badge status={u.status} />
-                                </div>
+                            <li key={u.id} className="flex items-center justify-between gap-3 px-edge py-3 hover:bg-surface/60 transition-colors">
+                              <div className="min-w-0 flex items-center gap-3">
+                                <span className="font-semibold text-[14px] text-text-1 w-10">{u.unit_number}</span>
+                                <span className="text-[12px] text-text-3 truncate">{u.tenant_name || 'Vacant'}</span>
+                                <Badge status={u.status} compact />
                               </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
+                              <div className="flex items-center gap-2 shrink-0">
                                 {u.qr_token ? (
                                   <>
-                                    <span
-                                      className="icon-box !w-8 !h-8 bg-status-green-dim text-status-green"
-                                      title="QR token ready"
-                                      aria-label="QR token ready"
-                                    >
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                                        <path d="M20 6 9 17l-5-5" />
-                                      </svg>
+                                    <span className="icon-box !w-7 !h-7 bg-status-green-dim text-status-green">
+                                      <IconCheck size={14} />
                                     </span>
                                     <Button size="xs" variant="secondary" onClick={(e) => openQrModal(u, e)}>
-                                      View QR
+                                      View
                                     </Button>
                                   </>
                                 ) : (
-                                  <Button
-                                    size="xs"
-                                    onClick={() => handleGenerateQr(u)}
-                                    disabled={generatingQrId === u.id}
-                                  >
-                                    {generatingQrId === u.id ? '...' : 'Generate'}
+                                  <Button size="xs" onClick={() => handleGenerateQr(u)} disabled={generatingQrId === u.id}>
+                                    {generatingQrId === u.id ? '…' : 'Generate'}
                                   </Button>
                                 )}
                               </div>
                             </li>
                           ))}
                         </ul>
-                      </Card>
+                      </div>
                     )}
-                  </Card>
+                  </div>
                 ) : (
-                  <Card className="h-full flex items-center justify-center min-h-[300px]">
-                    <EmptyState icon="👈" title="Select a property" description="Click a property to view its units" />
-                  </Card>
+                  <div className="h-full min-h-[320px] rounded-sm border-[0.5px] border-dashed border-border bg-card/50 flex items-center justify-center">
+                    <EmptyState
+                      icon={<IconArrowRight size={22} />}
+                      title="Select a property"
+                      description="Choose a property on the left to manage units"
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -398,46 +449,56 @@ export default function PropertiesPage() {
         {/* Unit Detail Modal */}
         <Modal open={!!selectedUnit} onClose={() => setSelectedUnit(null)} title={`Unit ${selectedUnit?.unit_number}`}>
           {selectedUnit && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-surface rounded-lg p-3"><div className="text-xs text-text-3 mb-1">Status</div><Badge status={selectedUnit.status} /></div>
-                <div className="bg-surface rounded-lg p-3"><div className="text-xs text-text-3 mb-1">Rent</div><div className="font-display font-bold text-lg text-accent">{fmt.usd(selectedUnit.monthly_rent_usd)}</div></div>
-                <div className="bg-surface rounded-lg p-3 border-[0.5px] border-border">
-                  <div className="label-ui mb-2">Bedrooms</div>
-                  <FeaturePill icon="🛏" variant="bedroom">{selectedUnit.bedrooms}</FeaturePill>
+                <div className="rounded-sm border-[0.5px] border-border bg-surface p-3">
+                  <div className="label-ui mb-2">Status</div>
+                  <Badge status={selectedUnit.status} />
                 </div>
-                <div className="bg-surface rounded-lg p-3 border-[0.5px] border-border">
-                  <div className="label-ui mb-2">Bathrooms</div>
-                  <FeaturePill icon="🚿" variant="bath">{selectedUnit.toilets}</FeaturePill>
+                <div className="rounded-sm border-[0.5px] border-border bg-surface p-3">
+                  <div className="label-ui mb-2">Rent</div>
+                  <div className="font-display text-[22px] text-accent leading-none">{fmt.usd(selectedUnit.monthly_rent_usd)}</div>
                 </div>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                <FeaturePill icon="🛏" variant="bedroom">{selectedUnit.bedrooms} bedroom{selectedUnit.bedrooms !== 1 ? 's' : ''}</FeaturePill>
-                <FeaturePill icon="🚿" variant="bath">{selectedUnit.toilets} bathroom{selectedUnit.toilets !== 1 ? 's' : ''}</FeaturePill>
-                <FeaturePill icon="🍳" variant={selectedUnit.has_kitchen ? 'kitchen' : 'off'}>{selectedUnit.has_kitchen ? 'Has kitchen' : 'No kitchen'}</FeaturePill>
-                <FeaturePill icon="🪑" variant={selectedUnit.is_furnished ? 'furnished' : 'off'}>{selectedUnit.is_furnished ? 'Furnished' : 'Unfurnished'}</FeaturePill>
+
+              <div className="flex flex-wrap gap-2">
+                <FeaturePill icon={<IconBed size={13} />} variant="bedroom">{selectedUnit.bedrooms} bed{selectedUnit.bedrooms !== 1 ? 's' : ''}</FeaturePill>
+                <FeaturePill icon={<IconBath size={13} />} variant="bath">{selectedUnit.toilets} bath</FeaturePill>
+                <FeaturePill icon={<IconKitchen size={13} />} variant={selectedUnit.has_kitchen ? 'kitchen' : 'off'}>
+                  {selectedUnit.has_kitchen ? 'Kitchen' : 'No kitchen'}
+                </FeaturePill>
+                <FeaturePill icon={<IconSofa size={13} />} variant={selectedUnit.is_furnished ? 'furnished' : 'off'}>
+                  {selectedUnit.is_furnished ? 'Furnished' : 'Unfurnished'}
+                </FeaturePill>
                 <FeaturePill variant="neutral">Floor {selectedUnit.floor}</FeaturePill>
               </div>
+
               {selectedUnit.tenant_name && (
-                <div className="p-3 bg-surface rounded-lg border border-border">
-                  <div className="text-xs text-text-3 mb-1">Current Tenant</div>
-                  <div className="font-semibold">{selectedUnit.tenant_name}</div>
-                  {selectedUnit.tenant_phone && <div className="text-xs text-text-3">{selectedUnit.tenant_phone}</div>}
+                <div className="rounded-sm border-[0.5px] border-border bg-surface p-3 flex items-start gap-3">
+                  <IconBox tint="purple" className="!w-9 !h-9">
+                    <IconUser size={16} />
+                  </IconBox>
+                  <div>
+                    <div className="label-ui mb-1">Current tenant</div>
+                    <div className="font-semibold text-text-1">{selectedUnit.tenant_name}</div>
+                    {selectedUnit.tenant_phone && <div className="text-[12px] text-text-3 mt-0.5">{selectedUnit.tenant_phone}</div>}
+                  </div>
                 </div>
               )}
+
               <div className="flex flex-wrap gap-2">
                 <Button variant="secondary" onClick={() => setPhotoUnit(selectedUnit)}>Photos</Button>
                 <Button variant="secondary" onClick={(e) => { openQrModal(selectedUnit, e); }}>
-                  QR Code
+                  <IconQr size={14} /> QR Code
                 </Button>
                 {selectedUnit.tenant_id && (
                   <Button variant="ghost" onClick={() => setLeaseTenantId(selectedUnit.tenant_id)}>
-                    Lease & sign (cloud)
+                    Lease & sign
                   </Button>
                 )}
                 {selectedUnit.status === 'vacant' && (
-                  <Button className="flex-1 justify-center" onClick={() => { setSelectedUnit(null); setTenantForm(f => ({ ...f, unit_id: selectedUnit.id, monthly_rent_usd: selectedUnit.monthly_rent_usd })); setAddTenantOpen(true); }}>
-                    Register Tenant for this Unit
+                  <Button className="flex-1 justify-center" onClick={() => { setSelectedUnit(null); setTenantForm((f) => ({ ...f, unit_id: selectedUnit.id, monthly_rent_usd: selectedUnit.monthly_rent_usd })); setAddTenantOpen(true); }}>
+                    Register Tenant
                   </Button>
                 )}
               </div>
@@ -454,11 +515,11 @@ export default function PropertiesPage() {
               {MOGADISHU_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
             </Select>
             <Select label="Type *" value={propForm.type} onChange={e => setPropForm(f => ({ ...f, type: e.target.value }))}>
-              <option value="apartment">🏢 Apartment</option>
-              <option value="villa">🏡 Villa</option>
-              <option value="commercial">🏪 Commercial</option>
-              <option value="office">🏬 Office</option>
-              <option value="mixed">🏗️ Mixed Use</option>
+              <option value="apartment">Apartment</option>
+              <option value="villa">Villa</option>
+              <option value="commercial">Commercial</option>
+              <option value="office">Office</option>
+              <option value="mixed">Mixed Use</option>
             </Select>
           </div>
           <Input label="Full Address *" value={propForm.address} onChange={e => setPropForm(f => ({ ...f, address: e.target.value }))} placeholder="Street, landmark, Mogadishu" />

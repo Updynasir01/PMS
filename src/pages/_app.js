@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { ThemeProvider } from '../context/ThemeContext';
 import { LanguageProvider } from '../context/LanguageContext';
 import { Spinner } from '../components/ui';
+import BrandLogo from '../components/BrandLogo';
 import '../styles/globals.css';
 
 const AuthContext = createContext(null);
@@ -46,11 +47,9 @@ export default function App({ Component, pageProps }) {
       <ThemeProvider>
         <div className="min-h-screen flex items-center justify-center surface-page">
           <div className="text-center animate-fade">
+            <BrandLogo height={64} className="mx-auto mb-6" priority />
             <Spinner size="lg" />
-            <div className="font-display text-[32px] text-text-1 mt-6">
-              e<span className="text-accent">Nuzul</span>
-            </div>
-            <p className="label-ui mt-2 normal-case">Loading</p>
+            <p className="label-ui mt-4 normal-case">Loading</p>
           </div>
         </div>
       </ThemeProvider>

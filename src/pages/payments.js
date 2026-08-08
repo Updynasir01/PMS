@@ -118,7 +118,7 @@ export default function PaymentsPage() {
           {/* Filters */}
           {!isTenant && (
             <div className="flex gap-3 flex-wrap">
-              <select className="bg-input border border-border rounded-lg px-3 py-2 text-sm text-text-1 focus:outline-none focus:border-[#6c63ff]"
+              <select className="bg-input border border-border rounded-lg px-3 py-2 text-sm text-text-1 focus:outline-none focus:border-accent"
                 value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
                 <option value="">All Status</option>
                 <option value="paid">Paid</option>
@@ -126,7 +126,7 @@ export default function PaymentsPage() {
                 <option value="overdue">Overdue</option>
               </select>
               <input type="month" value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
-                className="bg-input border border-border rounded-lg px-3 py-2 text-sm text-text-1 focus:outline-none focus:border-[#6c63ff]" />
+                className="bg-input border border-border rounded-lg px-3 py-2 text-sm text-text-1 focus:outline-none focus:border-accent" />
             </div>
           )}
 
@@ -235,7 +235,7 @@ export default function PaymentsPage() {
           <div>
             <label className="block text-xs font-semibold text-[#9898b0] uppercase tracking-wide mb-1.5">Month</label>
             <input type="month" value={genMonth} onChange={e => setGenMonth(e.target.value)}
-              className="w-full bg-input border border-border rounded-lg px-3.5 py-2.5 text-text-1 text-sm focus:outline-none focus:border-[#6c63ff]" />
+              className="w-full bg-input border border-border rounded-lg px-3.5 py-2.5 text-text-1 text-sm focus:outline-none focus:border-accent" />
           </div>
         </Modal>
       </Layout>
