@@ -1,7 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/layout/Layout';
-import { Card, Badge, Button, Modal, Select, Input, Textarea, EmptyState, Spinner, fmt, apiFetch, toast } from '../../components/ui';
+import { Card, Badge, Button, Modal, Select, Input, Textarea, EmptyState, Spinner, fmt, apiFetch, toast, IconBox, PageHeader } from '../../components/ui';
+import {
+  MrTypeIcon, IconPlus, IconUser, IconBuilding, IconClock, IconWorker, IconWrench,
+} from '../../components/Icons';
 import { useAuth } from '../_app';
 import Head from 'next/head';
 import { useAutoRefresh, dispatchLiveRefresh } from '../../hooks/useAutoRefresh';
@@ -54,68 +57,92 @@ export default function MaintenancePage() {
       <Head><title>eNuzul — Maintenance</title></Head>
       <Layout title="Maintenance">
         <div className="animate-up space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-display text-2xl font-bold">Maintenance Requests</h2>
-              <p className="text-text-3 text-sm">{open} open · {requests.length} total</p>
-            </div>
-            {isTenant && (
-              <Button onClick={() => setNewOpen(true)}>
-                <span>+</span> New Request
-              </Button>
-            )}
-          </div>
+          <PageHeader
+            title="Maintenance"
+            subtitle={`${open} open · ${requests.length} total`}
+            action={
+              isTenant ? (
+                <Button onClick={() => setNewOpen(true)}>
+                  <IconPlus size={16} /> New Request
+                </Button>
+              ) : null
+            }
+          />
 
           {loading ? (
             <div className="flex justify-center py-20"><Spinner size="lg" /></div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {requests.map(r => (
-                <div key={r.id}
+                <button
+                  key={r.id}
+                  type="button"
                   onClick={() => router.push(`/maintenance/${r.id}`)}
-                  className="bg-card border border-border rounded-xl p-4 cursor-pointer hover:border-border-strong transition-all hover:-translate-y-0.5">
+                  className="w-full text-left rounded-sm border-[0.5px] border-border bg-card p-4 cursor-pointer hover:border-accent/30 hover:bg-surface transition-all duration-200"
+                >
                   <div className="flex items-start gap-4">
-                    <span className="text-2xl mt-0.5">{fmt.mrIcon(r.type)}</span>
+                    <IconBox tint="purple" className="!w-10 !h-10 shrink-0">
+                      <MrTypeIcon type={r.type} size={18} />
+                    </IconBox>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-display font-bold">{r.title}</span>
-                        <Badge status={r.priority} />
-                        <Badge status={r.status} />
+                        <span className="font-display text-[17px] text-text-1">{r.title}</span>
+                        <Badge status={r.priority} compact />
+                        <Badge status={r.status} compact />
                       </div>
-                      <p className="text-text-3 text-sm truncate">{r.description}</p>
-                      <div className="flex gap-4 mt-2 text-xs text-text-3">
-                        {!isTenant && <span>👤 {r.tenant_name} · {r.unit_number}</span>}
-                        {!isTenant && r.property_name && <span>🏢 {r.property_name}</span>}
-                        <span>⏱ {fmt.timeAgo(r.created_at)}</span>
-                        {r.assigned_technician && <span>👷 {r.assigned_technician}</span>}
+                      <p className="text-text-3 text-[13px] truncate">{r.description}</p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 text-[12px] text-text-3">
+                        {!isTenant && (
+                          <span className="inline-flex items-center gap-1">
+                            <IconUser size={12} className="opacity-60" />
+                            {r.tenant_name} · {r.unit_number}
+                          </span>
+                        )}
+                        {!isTenant && r.property_name && (
+                          <span className="inline-flex items-center gap-1">
+                            <IconBuilding size={12} className="opacity-60" />
+                            {r.property_name}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1">
+                          <IconClock size={12} className="opacity-60" />
+                          {fmt.timeAgo(r.created_at)}
+                        </span>
+                        {r.assigned_technician && (
+                          <span className="inline-flex items-center gap-1">
+                            <IconWorker size={12} className="opacity-60" />
+                            {r.assigned_technician}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <svg className="w-5 h-5 text-text-3 flex-shrink-0 mt-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                    <svg className="w-4 h-4 text-text-3 flex-shrink-0 mt-2 opacity-50" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                   </div>
-                </div>
+                </button>
               ))}
               {!requests.length && (
-                <Card>
-                  <EmptyState icon="🔧" title="No maintenance requests"
-                    description={isTenant ? "Submit a request if something needs fixing in your unit" : "No requests from tenants yet"}
+                <div className="rounded-sm border-[0.5px] border-border bg-card p-6">
+                  <EmptyState
+                    icon={<IconWrench size={22} />}
+                    title="No maintenance requests"
+                    description={isTenant ? 'Submit a request if something needs fixing in your unit' : 'No requests from tenants yet'}
                     action={isTenant ? <Button onClick={() => setNewOpen(true)}>Submit Request</Button> : null}
                   />
-                </Card>
+                </div>
               )}
             </div>
           )}
         </div>
 
-        {/* New Request Modal */}
         <Modal open={newOpen} onClose={() => setNewOpen(false)} title="New Maintenance Request"
           footer={<><Button variant="secondary" onClick={() => setNewOpen(false)}>Cancel</Button><Button onClick={handleSubmitRequest} disabled={saving}>{saving ? 'Submitting...' : 'Submit Request'}</Button></>}>
           <div className="grid grid-cols-2 gap-4">
             <Select label="Type *" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-              <option value="electricity">⚡ Electricity</option>
-              <option value="plumbing">🔧 Plumbing</option>
-              <option value="painting">🎨 Painting</option>
-              <option value="ac_cooling">❄️ AC / Cooling</option>
-              <option value="other">🔩 Other</option>
+              <option value="electricity">Electricity</option>
+              <option value="plumbing">Plumbing</option>
+              <option value="painting">Painting</option>
+              <option value="ac_cooling">AC / Cooling</option>
+              <option value="other">Other</option>
             </Select>
             <Select label="Priority *" value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}>
               <option value="low">Low</option>

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Button, Badge, Spinner, toast, apiFetch } from './ui';
 import SignaturePad from './SignaturePad';
+import { IconCheck } from './Icons';
 import { buildLeasePdf, downloadPdfDataUrl, leaseSignaturesFromDocument } from '../lib/generateLease';
 import { useAutoRefresh, dispatchLiveRefresh } from '../hooks/useAutoRefresh';
 
@@ -180,11 +181,15 @@ export default function LeaseSignPanel({ tenantId, role, apiBase, qrToken, fetch
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className={`p-3 rounded-md border ${doc.landlord_signed_at ? 'border-status-green/40 bg-status-green-dim' : 'border-border'}`}>
           <span className="text-text-3 text-xs">Landlord</span>
-          <p className="font-medium">{doc.landlord_signed_at ? '✓ Signed' : 'Not signed'}</p>
+          <p className="font-medium inline-flex items-center gap-1.5">
+            {doc.landlord_signed_at ? <><IconCheck size={14} className="text-status-green" /> Signed</> : 'Not signed'}
+          </p>
         </div>
         <div className={`p-3 rounded-md border ${doc.tenant_signed_at ? 'border-status-green/40 bg-status-green-dim' : 'border-border'}`}>
           <span className="text-text-3 text-xs">Tenant</span>
-          <p className="font-medium">{doc.tenant_signed_at ? '✓ Signed' : 'Not signed'}</p>
+          <p className="font-medium inline-flex items-center gap-1.5">
+            {doc.tenant_signed_at ? <><IconCheck size={14} className="text-status-green" /> Signed</> : 'Not signed'}
+          </p>
         </div>
       </div>
 

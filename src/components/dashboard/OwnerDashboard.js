@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { StatCard, Card, Badge, ProgressBar, PageHeader, EmptyState, Spinner, fmt, apiFetch, IconBox, Button, Modal, Input } from '../ui';
+import { IconAlert, IconClock, IconChart, IconLayers, MrTypeIcon, IconCheck, IconWrench } from '../Icons';
 import { generateWhatsAppLink, leaseExpiryMessage } from '../../lib/whatsapp';
 import { useTranslation } from '../../context/LanguageContext';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
@@ -37,9 +38,12 @@ export default function OwnerDashboard() {
       <PageHeader title="My Dashboard" subtitle={`${properties.length} properties · ${fmt.month(fmt.currentMonth())}`} />
 
       {leaseAlerts?.length > 0 && (
-        <div className="p-4 rounded-lg bg-status-amber-dim border border-status-amber/30 text-sm">
-          ⚠️ {leaseAlerts.length} {t.leaseExpiring}
-          <button type="button" className="ml-2 text-accent underline" onClick={() => document.getElementById('lease-alerts')?.scrollIntoView({ behavior: 'smooth' })}>View</button>
+        <div className="p-4 rounded-sm bg-status-amber-dim border-[0.5px] border-status-amber/30 text-sm flex items-start gap-2">
+          <IconAlert size={16} className="text-status-amber shrink-0 mt-0.5" />
+          <span>
+            {leaseAlerts.length} {t.leaseExpiring}
+            <button type="button" className="ml-2 text-accent underline" onClick={() => document.getElementById('lease-alerts')?.scrollIntoView({ behavior: 'smooth' })}>View</button>
+          </span>
         </div>
       )}
 
@@ -48,14 +52,14 @@ export default function OwnerDashboard() {
         <StatCard size="sm" label="Collected" value={fmt.usd(revenue.collected)} color="green"
           icon={<span className="text-sm font-bold">$</span>} />
         <StatCard size="sm" label="Pending" value={fmt.usd(revenue.pending)} color="amber"
-          icon={<span className="text-sm">⏳</span>} />
+          icon={<IconClock size={14} />} />
         <StatCard size="sm" label="Overdue" value={fmt.usd(revenue.overdue)} color="red"
-          icon={<span className="text-sm">⚠</span>} />
+          icon={<IconAlert size={14} />} />
         <StatCard size="sm" label="Occupancy" value={`${occupancyRate}%`} sub={`${occupiedUnits}/${totalUnits} units`} color="purple"
-          icon={<span className="text-sm">▦</span>} />
+          icon={<IconLayers size={14} />} />
         {expenseSummary && (
           <StatCard size="sm" label={t.netProfit} value={fmt.usd(expenseSummary.netProfit)} color={expenseSummary.netProfit >= 0 ? 'green' : 'red'}
-            icon={<span className="text-sm">📊</span>} />
+            icon={<IconChart size={14} />} />
         )}
       </div>
 
@@ -135,7 +139,7 @@ export default function OwnerDashboard() {
               <div key={m.id}
                 onClick={() => router.push(`/maintenance/${m.id}`)}
                 className="flex items-center gap-3 p-3 bg-surface rounded-sm border-[0.5px] border-border cursor-pointer hover:-translate-y-0.5 transition-all duration-200">
-                <IconBox tint="amber"><span className="text-base">{fmt.mrIcon(m.type)}</span></IconBox>
+                <IconBox tint="amber"><MrTypeIcon type={m.type} size={16} /></IconBox>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{m.title}</div>
                   <div className="text-[13px] text-text-3">{m.tenant_name} · {m.unit_number}</div>
@@ -143,7 +147,7 @@ export default function OwnerDashboard() {
                 <Badge status={m.priority} />
               </div>
             ))}
-            {!pendingMaintenance.length && <EmptyState icon="🎉" title="No open requests" />}
+            {!pendingMaintenance.length && <EmptyState icon={<IconCheck size={22} />} title="No open requests" />}
           </div>
         </Card>
       </div>

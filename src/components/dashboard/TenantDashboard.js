@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { StatCard, Card, Badge, PageHeader, EmptyState, Spinner, fmt, apiFetch, FeaturePill } from '../ui';
+import { StatCard, Card, Badge, PageHeader, EmptyState, Spinner, fmt, apiFetch, FeaturePill, IconBox } from '../ui';
+import { IconHome, IconBed, IconBath, IconKitchen, IconSofa, IconCheck, IconAlert, IconClock, IconCreditCard, IconClipboard, MrTypeIcon } from '../Icons';
 import LeaseSignPanel from '../LeaseSignPanel';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
@@ -28,7 +29,9 @@ export default function TenantDashboard() {
   if (!unit) return (
     <div className="flex items-center justify-center py-20">
       <Card className="text-center max-w-sm">
-        <div className="text-4xl mb-3">🏠</div>
+        <div className="mx-auto mb-3 w-12 h-12 rounded-sm bg-accent-muted text-accent flex items-center justify-center">
+          <IconHome size={22} />
+        </div>
         <h3 className="font-display font-bold mb-2">No Unit Assigned</h3>
         <p className="text-[14px] text-text-3">Your landlord will assign you to a unit. Contact them for help.</p>
       </Card>
@@ -58,16 +61,22 @@ export default function TenantDashboard() {
             </div>
             <div className="bg-surface rounded-sm p-3 border-[0.5px] border-border">
               <div className="label-ui mb-1">Bedrooms</div>
-              <div className="font-semibold text-text-1">🛏 {unit.bedrooms} bedroom{unit.bedrooms !== 1 ? 's' : ''}</div>
+              <div className="font-semibold text-text-1 inline-flex items-center gap-1.5">
+                <IconBed size={14} className="opacity-60" />
+                {unit.bedrooms} bedroom{unit.bedrooms !== 1 ? 's' : ''}
+              </div>
             </div>
             <div className="bg-surface rounded-sm p-3 border-[0.5px] border-border">
               <div className="label-ui mb-1">Bathrooms</div>
-              <div className="font-semibold">🚿 {unit.toilets} toilet{unit.toilets !== 1 ? 's' : ''}</div>
+              <div className="font-semibold inline-flex items-center gap-1.5">
+                <IconBath size={14} className="opacity-60" />
+                {unit.toilets} toilet{unit.toilets !== 1 ? 's' : ''}
+              </div>
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <FeaturePill icon="🍳" variant={unit.has_kitchen ? 'kitchen' : 'off'}>{unit.has_kitchen ? 'Has kitchen' : 'No kitchen'}</FeaturePill>
-            <FeaturePill icon="🪑" variant={unit.is_furnished ? 'furnished' : 'off'}>{unit.is_furnished ? 'Furnished' : 'Unfurnished'}</FeaturePill>
+            <FeaturePill icon={<IconKitchen size={13} />} variant={unit.has_kitchen ? 'kitchen' : 'off'}>{unit.has_kitchen ? 'Has kitchen' : 'No kitchen'}</FeaturePill>
+            <FeaturePill icon={<IconSofa size={13} />} variant={unit.is_furnished ? 'furnished' : 'off'}>{unit.is_furnished ? 'Furnished' : 'Unfurnished'}</FeaturePill>
           </div>
           {lease && (
             <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
@@ -94,8 +103,14 @@ export default function TenantDashboard() {
           <h3 className="font-display font-bold mb-4">This Month — {fmt.month(fmt.currentMonth())}</h3>
           {currentPayment ? (
             <div className="text-center py-4">
-              <div className="text-6xl mb-3">
-                {currentPayment.status === 'paid' ? '✅' : currentPayment.status === 'overdue' ? '⚠️' : '⏳'}
+              <div className="mx-auto mb-3 flex justify-center">
+                {currentPayment.status === 'paid' ? (
+                  <span className="w-14 h-14 rounded-full bg-status-green-dim text-status-green flex items-center justify-center"><IconCheck size={24} /></span>
+                ) : currentPayment.status === 'overdue' ? (
+                  <span className="w-14 h-14 rounded-full bg-status-red-dim text-status-red flex items-center justify-center"><IconAlert size={24} /></span>
+                ) : (
+                  <span className="w-14 h-14 rounded-full bg-status-amber-dim text-status-amber flex items-center justify-center"><IconClock size={24} /></span>
+                )}
               </div>
               <div className="font-display text-display-lg text-accent mb-3">{fmt.usd(currentPayment.amount_usd)}</div>
               <div className="flex justify-center mb-3"><Badge status={currentPayment.status} /></div>
@@ -107,13 +122,14 @@ export default function TenantDashboard() {
                 <div className="text-sm text-text-3 mt-1">via {fmt.payMethod(currentPayment.payment_method)}</div>
               )}
               {currentPayment.status !== 'paid' && (
-                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-xs">
-                  💳 Pay via EVC Plus, Zaad, Sahal, or Cash. Contact landlord to confirm receipt.
+                <div className="mt-4 p-3 bg-status-amber-dim border-[0.5px] border-status-amber/25 rounded-sm text-status-amber text-[12px] flex gap-2 text-left">
+                  <IconCreditCard size={14} className="shrink-0 mt-0.5" />
+                  <span>Pay via EVC Plus, Zaad, Sahal, or Cash. Contact landlord to confirm receipt.</span>
                 </div>
               )}
             </div>
           ) : (
-            <EmptyState icon="📋" title="No payment record" description="Contact your landlord to generate this month's payment" />
+            <EmptyState icon={<IconClipboard size={22} />} title="No payment record" description="Contact your landlord to generate this month's payment" />
           )}
         </Card>
       </div>
@@ -170,7 +186,9 @@ export default function TenantDashboard() {
               <div key={r.id}
                 onClick={() => router.push(`/maintenance/${r.id}`)}
                 className="flex items-center gap-3 p-3 bg-surface rounded-sm border-[0.5px] border-border cursor-pointer hover:-translate-y-0.5 transition-all duration-200 transition-colors">
-                <span className="text-lg">{fmt.mrIcon(r.type)}</span>
+                <IconBox tint="amber" className="!w-8 !h-8">
+                  <MrTypeIcon type={r.type} size={15} />
+                </IconBox>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{r.title}</div>
                   <div className="text-xs text-text-3">{fmt.timeAgo(r.created_at)}</div>

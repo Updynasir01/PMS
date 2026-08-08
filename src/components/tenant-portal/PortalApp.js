@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Badge, Button, Select, Input, Textarea, Spinner, fmt, FeaturePill, EmptyState, Card,
+  Badge, Button, Select, Input, Textarea, Spinner, fmt, FeaturePill, EmptyState, Card, IconBox,
 } from '../ui';
 import BrandLogo from '../BrandLogo';
+import {
+  IconHome, IconCreditCard, IconWrench, IconBed, IconBath, IconKitchen, IconSofa,
+  MrTypeIcon, IconCheck, IconAlert, IconClock, IconClipboard,
+} from '../Icons';
 import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
 import { useAutoRefresh, dispatchLiveRefresh } from '../../hooks/useAutoRefresh';
 import { downloadReceiptPdf } from '../../lib/generateReceipt';
@@ -17,9 +21,9 @@ const MR_TYPES = [
 ];
 
 const TABS = [
-  { id: 'home', label: 'My Home', icon: '🏠' },
-  { id: 'payments', label: 'Payments', icon: '💳' },
-  { id: 'maintenance', label: 'Maintenance', icon: '🔧' },
+  { id: 'home', label: 'My Home', Icon: IconHome },
+  { id: 'payments', label: 'Payments', Icon: IconCreditCard },
+  { id: 'maintenance', label: 'Maintenance', Icon: IconWrench },
 ];
 
 function portalFetch(token, path, options = {}) {
@@ -163,7 +167,9 @@ export default function PortalApp({ token }) {
           <>
             <Card>
               <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">{fmt.mrIcon(detail.type)}</span>
+                <IconBox tint="purple" className="!w-11 !h-11">
+                  <MrTypeIcon type={detail.type} size={20} />
+                </IconBox>
                 <div>
                   <h2 className="font-display font-bold text-lg">{detail.title}</h2>
                   <div className="flex gap-2 mt-1">
@@ -251,12 +257,12 @@ export default function PortalApp({ token }) {
           <section className="surface-card">
             <p className="label-ui mb-3">Unit details</p>
             <div className="flex flex-wrap gap-2 mb-3">
-              <FeaturePill icon="🛏" variant="bedroom">{unit.bedrooms} bed{unit.bedrooms !== 1 ? 's' : ''}</FeaturePill>
-              <FeaturePill icon="🚿" variant="bath">{unit.toilets} bath</FeaturePill>
-              <FeaturePill icon="🍳" variant={unit.has_kitchen ? 'kitchen' : 'off'}>
+              <FeaturePill icon={<IconBed size={13} />} variant="bedroom">{unit.bedrooms} bed{unit.bedrooms !== 1 ? 's' : ''}</FeaturePill>
+              <FeaturePill icon={<IconBath size={13} />} variant="bath">{unit.toilets} bath</FeaturePill>
+              <FeaturePill icon={<IconKitchen size={13} />} variant={unit.has_kitchen ? 'kitchen' : 'off'}>
                 {unit.has_kitchen ? 'Kitchen' : 'No kitchen'}
               </FeaturePill>
-              <FeaturePill icon="🪑" variant={unit.is_furnished ? 'furnished' : 'off'}>
+              <FeaturePill icon={<IconSofa size={13} />} variant={unit.is_furnished ? 'furnished' : 'off'}>
                 {unit.is_furnished ? 'Furnished' : 'Unfurnished'}
               </FeaturePill>
               <FeaturePill variant="neutral">Floor {unit.floor}</FeaturePill>
@@ -344,7 +350,9 @@ export default function PortalApp({ token }) {
                     onClick={() => setDetailId(r.id)}
                     className="w-full flex items-center gap-3 p-3 bg-surface rounded-sm border border-border text-left"
                   >
-                    <span>{fmt.mrIcon(r.type)}</span>
+                    <IconBox tint="amber" className="!w-8 !h-8">
+                      <MrTypeIcon type={r.type} size={15} />
+                    </IconBox>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold truncate">{r.title}</div>
                       <div className="text-xs text-text-3">{fmt.timeAgo(r.created_at)}</div>
@@ -408,7 +416,7 @@ export default function PortalApp({ token }) {
       )}
 
       {tab === 'payments' && !hasTenant && (
-        <EmptyState icon="💳" title="Payments unavailable" description="Assign a tenant to this unit first" />
+        <EmptyState icon={<IconCreditCard size={22} />} title="Payments unavailable" description="Assign a tenant to this unit first" />
       )}
 
       {tab === 'maintenance' && (
@@ -440,7 +448,7 @@ export default function PortalApp({ token }) {
             </section>
           )}
           {!hasTenant ? (
-            <EmptyState icon="🔧" title="Maintenance unavailable" description="No tenant on this unit" />
+            <EmptyState icon={<IconWrench size={22} />} title="Maintenance unavailable" description="No tenant on this unit" />
           ) : maintenanceRequests.length ? (
             maintenanceRequests.map((r) => (
               <button
@@ -450,7 +458,9 @@ export default function PortalApp({ token }) {
                 className="w-full surface-card text-left hover:border-accent/30 transition-colors"
               >
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">{fmt.mrIcon(r.type)}</span>
+                  <IconBox tint="purple" className="!w-10 !h-10">
+                    <MrTypeIcon type={r.type} size={18} />
+                  </IconBox>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">{r.title}</div>
                     <p className="text-xs text-text-3 truncate">{r.description}</p>
@@ -480,7 +490,9 @@ export default function PortalApp({ token }) {
                   tab === t.id ? 'text-accent' : 'text-text-3'
                 }`}
               >
-                <span className="block text-lg mb-0.5">{t.icon}</span>
+                <span className="flex justify-center mb-0.5 opacity-90">
+                  <t.Icon size={18} />
+                </span>
                 {t.label}
               </button>
             ))}

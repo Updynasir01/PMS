@@ -174,6 +174,151 @@ export function IconBriefcase({ size, className }) {
   );
 }
 
+export function IconZap({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z" />
+    </Svg>
+  );
+}
+
+export function IconWrench({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </Svg>
+  );
+}
+
+export function IconPaint({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M19 3H9a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z" />
+      <path d="M7 7v12a2 2 0 0 0 2 2h2" />
+      <path d="M11 21a2 2 0 0 0 2-2v-3h5a2 2 0 0 0 2-2V7" />
+    </Svg>
+  );
+}
+
+export function IconSnowflake({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M12 2v20M2 12h20" />
+      <path d="m4.9 4.9 14.2 14.2M19.1 4.9 4.9 19.1" />
+      <path d="m8 4 4 4 4-4M8 20l4-4 4 4M4 8l4 4-4 4M20 8l-4 4 4 4" />
+    </Svg>
+  );
+}
+
+export function IconNut({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M12 2 4.5 6.5v11L12 22l7.5-4.5v-11L12 2z" />
+      <circle cx="12" cy="12" r="3" />
+    </Svg>
+  );
+}
+
+export function IconMessage({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </Svg>
+  );
+}
+
+export function IconWallet({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+      <path d="M16 14h.01" />
+    </Svg>
+  );
+}
+
+export function IconChart({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M4 19V5M4 19h16" />
+      <path d="M8 17V10M12 17V7M16 17v-4" />
+    </Svg>
+  );
+}
+
+export function IconClock({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </Svg>
+  );
+}
+
+export function IconWorker({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+      <path d="M8 11h8" />
+    </Svg>
+  );
+}
+
+export function IconHammer({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L12 9" />
+      <path d="M17.64 15 22 10.64" />
+      <path d="m20.91 11.7-1.25-1.25c-.6-.6-.9-1.4-.9-2.25v-.91L16.01 4.6c-.62-.62-1.63-.62-2.25 0L11 7.36" />
+    </Svg>
+  );
+}
+
+export function IconCreditCard({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+    </Svg>
+  );
+}
+
+export function IconStar({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 21l1.1-6.5L2.6 9.8l6.5-.9L12 3z" />
+    </Svg>
+  );
+}
+
+export function IconClipboard({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <rect x="6" y="4" width="12" height="18" rx="2" />
+      <path d="M9 4V3h6v1" />
+      <path d="M9 12h6M9 16h4" />
+    </Svg>
+  );
+}
+
+export function IconInfo({ size, className }) {
+  return (
+    <Svg size={size} className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 10v6M12 7h.01" />
+    </Svg>
+  );
+}
+
+export function IconX({ size, className }) {
+  return (
+    <Svg size={size} className={className} strokeWidth={2}>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </Svg>
+  );
+}
+
 export const PROPERTY_TYPE_ICONS = {
   apartment: IconBuilding,
   villa: IconHome,
@@ -181,3 +326,17 @@ export const PROPERTY_TYPE_ICONS = {
   office: IconBriefcase,
   mixed: IconLayers,
 };
+
+export const MR_TYPE_ICONS = {
+  electricity: IconZap,
+  plumbing: IconWrench,
+  painting: IconPaint,
+  ac_cooling: IconSnowflake,
+  other: IconNut,
+};
+
+/** Premium maintenance type icon */
+export function MrTypeIcon({ type, size = 18, className = '' }) {
+  const Icon = MR_TYPE_ICONS[type] || IconWrench;
+  return <Icon size={size} className={className} />;
+}

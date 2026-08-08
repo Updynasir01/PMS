@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/layout/Layout';
 import { Card, Button, Modal, Select, Input, Textarea, Spinner, fmt, apiFetch, toast } from '../components/ui';
+import { IconStar } from '../components/Icons';
 import { generateWhatsAppLink } from '../lib/whatsapp';
 import { useTranslation } from '../context/LanguageContext';
 import Head from 'next/head';
@@ -65,7 +66,11 @@ export default function TechniciansPage() {
                   </div>
                   <p className="text-sm text-text-3 capitalize">{tech.specialty}</p>
                   <p className="text-sm mt-2">{tech.phone}</p>
-                  <p className="text-amber-400 text-sm">{'★'.repeat(tech.rating)}</p>
+                  <div className="flex gap-0.5 mt-2 text-status-amber">
+                    {Array.from({ length: tech.rating || 0 }).map((_, i) => (
+                      <IconStar key={i} size={12} />
+                    ))}
+                  </div>
                   <div className="flex gap-2 mt-3">
                     <a href={`tel:${tech.phone}`} className="text-xs text-accent">Call</a>
                     {generateWhatsAppLink(tech.whatsapp || tech.phone) && (

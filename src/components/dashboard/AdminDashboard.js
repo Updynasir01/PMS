@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { StatCard, Card, Badge, BarChart, PageHeader, EmptyState, Spinner, fmt, apiFetch, IconBox } from '../ui';
+import { IconCheck, IconClock, IconAlert, MrTypeIcon } from '../Icons';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 export default function AdminDashboard() {
@@ -48,11 +49,11 @@ export default function AdminDashboard() {
       {/* Revenue */}
       <div className="grid grid-cols-3 gap-3">
         <StatCard size="sm" label="Collected" value={fmt.usd(revenue.collected)} color="green"
-          icon={<span className="text-sm">✓</span>} />
+          icon={<IconCheck size={14} />} />
         <StatCard size="sm" label="Pending" value={fmt.usd(revenue.pending)} color="amber"
-          icon={<span className="text-sm">⏳</span>} />
+          icon={<IconClock size={14} />} />
         <StatCard size="sm" label="Overdue" value={fmt.usd(revenue.overdue)} color="red"
-          icon={<span className="text-sm">⚠</span>} />
+          icon={<IconAlert size={14} />} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -129,7 +130,7 @@ export default function AdminDashboard() {
           <div className="space-y-2">
             {recentMaintenance.slice(0, 5).map(m => (
               <div key={m.id} className="flex items-center gap-3 p-3 bg-surface rounded-sm border-[0.5px] border-border transition-all duration-200 hover:-translate-y-0.5">
-                <IconBox tint="amber"><span className="text-base">{fmt.mrIcon(m.type)}</span></IconBox>
+                <IconBox tint="amber"><MrTypeIcon type={m.type} size={16} /></IconBox>
                 <div className="flex-1 min-w-0">
                   <div className="text-[14px] font-semibold truncate text-text-1">{m.title}</div>
                   <div className="text-[13px] text-text-3">{m.tenant_name} · {m.unit_number}</div>
@@ -137,7 +138,7 @@ export default function AdminDashboard() {
                 <Badge status={m.status} />
               </div>
             ))}
-            {!recentMaintenance.length && <EmptyState title="No open requests" icon="🎉" />}
+            {!recentMaintenance.length && <EmptyState title="No open requests" icon={<IconCheck size={22} />} />}
           </div>
         </Card>
       </div>

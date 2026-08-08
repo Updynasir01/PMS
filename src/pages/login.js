@@ -54,7 +54,6 @@ export default function LoginPage() {
         <div className="w-full max-w-md relative z-10 animate-up">
           <div className="text-center mb-8">
             <BrandLogo height={72} className="mx-auto" priority />
-            <p className="label-ui mt-4">Mogadishu Property Management</p>
           </div>
 
           <form onSubmit={handleLogin} className="surface-card rounded-xl shadow-2xl">

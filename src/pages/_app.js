@@ -37,7 +37,11 @@ export default function App({ Component, pageProps }) {
   }, [router.isReady, router.pathname]);
 
   const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch {
+      // Server offline / network error — still clear local session
+    }
     setUser(null);
     router.push('/login');
   };

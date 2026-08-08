@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/layout/Layout';
-import { Card, Badge, Button, Select, Input, Spinner, fmt, apiFetch, toast } from '../../components/ui';
+import { Card, Badge, Button, Select, Input, Spinner, fmt, apiFetch, toast, IconBox } from '../../components/ui';
+import { MrTypeIcon, IconWorker, IconHammer, IconCheck, IconMessage } from '../../components/Icons';
 import { generateWhatsAppLink, maintenanceContactMessage } from '../../lib/whatsapp';
 import { useAuth } from '../_app';
 import { useMaintenanceChatPoll } from '../../hooks/useMaintenanceChatPoll';
@@ -133,7 +134,9 @@ export default function MaintenanceDetailPage() {
             <div className="space-y-4">
               <Card>
                 <div className="flex items-center gap-4 mb-4">
-                  <span className="text-4xl">{fmt.mrIcon(data.type)}</span>
+                  <IconBox tint="purple" className="!w-12 !h-12">
+                    <MrTypeIcon type={data.type} size={22} />
+                  </IconBox>
                   <div>
                     <h2 className="font-display text-xl font-bold">{data.title}</h2>
                     <div className="flex gap-2 mt-1">
@@ -169,22 +172,26 @@ export default function MaintenanceDetailPage() {
                     <span className="font-medium">{fmt.date(data.created_at)}</span>
                   </div>
                   {data.assigned_technician && (
-                    <div className="flex justify-between col-span-2">
+                    <div className="flex justify-between col-span-2 items-center gap-2">
                       <span className="text-zinc-600">Technician</span>
-                      <span className="font-medium">👷 {data.assigned_technician}</span>
+                      <span className="font-medium inline-flex items-center gap-1.5">
+                        <IconWorker size={14} className="opacity-60" />
+                        {data.assigned_technician}
+                      </span>
                     </div>
                   )}
                 </div>
 
-                {/* Status indicators */}
                 {data.status === 'in_progress' && (
-                  <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500/20 rounded-lg text-blue-400 text-xs">
-                    🔨 Your request is being worked on. Message your landlord for updates.
+                  <div className="mt-4 p-3 bg-status-blue-dim border-[0.5px] border-status-blue/25 rounded-sm text-status-blue text-[12px] flex gap-2">
+                    <IconHammer size={14} className="shrink-0 mt-0.5" />
+                    <span>Your request is being worked on. Message your landlord for updates.</span>
                   </div>
                 )}
                 {data.status === 'completed' && (
-                  <div className="mt-4 p-3 bg-green-900/20 border border-green-500/20 rounded-lg text-green-400 text-xs">
-                    ✅ This request has been completed. Submit a new request if the issue persists.
+                  <div className="mt-4 p-3 bg-status-green-dim border-[0.5px] border-status-green/25 rounded-sm text-status-green text-[12px] flex gap-2">
+                    <IconCheck size={14} className="shrink-0 mt-0.5" />
+                    <span>This request has been completed. Submit a new request if the issue persists.</span>
                   </div>
                 )}
               </Card>
@@ -265,7 +272,9 @@ export default function MaintenanceDetailPage() {
                 }) : (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center text-text-3">
-                      <div className="text-3xl mb-2">💬</div>
+                      <div className="mx-auto mb-3 w-10 h-10 rounded-sm bg-accent-muted text-accent flex items-center justify-center">
+                        <IconMessage size={18} />
+                      </div>
                       <div className="text-[14px]">No messages yet</div>
                     </div>
                   </div>

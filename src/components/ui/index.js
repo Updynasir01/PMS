@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { IconCheck, IconX, IconInfo } from '../Icons';
 
 export { ThemeToggle } from './ThemeToggle';
 
@@ -22,7 +23,8 @@ export const fmt = {
   },
   payMethod: m => ({ evc_plus:'EVC Plus', zaad:'Zaad', sahal:'Sahal', cash:'Cash', bank_transfer:'Bank Transfer' })[m] || m || '—',
   mrType: t => ({ electricity:'Electricity', plumbing:'Plumbing', painting:'Painting', ac_cooling:'AC/Cooling', other:'Other' })[t] || t,
-  mrIcon: t => ({ electricity:'⚡', plumbing:'🔧', painting:'🎨', ac_cooling:'❄️', other:'🔩' })[t] || '🔩',
+  /** @deprecated use MrTypeIcon from Icons.js */
+  mrIcon: t => t,
   initials: n => (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(),
   currentMonth: () => new Date().toISOString().slice(0,7),
 };
@@ -387,7 +389,9 @@ export function ToastContainer() {
     <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 pointer-events-none">
       {toasts.map(t => (
         <div key={t.id} className={`surface-card flex items-start gap-3 border-l-[3px] ${borderColors[t.type]} max-w-xs pointer-events-auto animate-up py-3`}>
-          <span className="text-[13px] text-text-2 mt-0.5">{t.type === 'success' ? '✓' : t.type === 'error' ? '✕' : 'ℹ'}</span>
+          <span className="mt-0.5 text-text-2 shrink-0">
+            {t.type === 'success' ? <IconCheck size={14} /> : t.type === 'error' ? <IconX size={14} /> : <IconInfo size={14} />}
+          </span>
           <span className="text-[14px] text-text-1">{t.message}</span>
         </div>
       ))}

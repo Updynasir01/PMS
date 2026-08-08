@@ -71,7 +71,6 @@ export default function Layout({ children, title }) {
     <aside className="w-64 surface-panel border-r-[0.5px] border-border flex flex-col h-full">
       <div className="px-edge py-5 border-b-[0.5px] border-border">
         <BrandLogo height={44} className="mx-auto block" />
-        <p className="label-ui mt-3 text-center">{t.mogadishuPropertyManagement}</p>
       </div>
 
       <div className="px-4 py-4 border-b-[0.5px] border-border flex items-center gap-3">
