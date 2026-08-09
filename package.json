@@ -11,7 +11,8 @@
     "db:seed": "node scripts/seed.js",
     "db:migrate-qr": "node scripts/migrateQrTokens.js",
     "db:migrate-plans": "node scripts/migrateOwnerPlans.js",
-    "db:migrate": "node scripts/migrateDb.js"
+    "db:migrate": "node scripts/migrateDb.js",
+    "capture:marketing": "node scripts/capture-marketing-shots.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

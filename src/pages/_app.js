@@ -5,9 +5,19 @@ import { LanguageProvider } from '../context/LanguageContext';
 import { Spinner } from '../components/ui';
 import BrandLogo from '../components/BrandLogo';
 import '../styles/globals.css';
+import '../styles/marketing.css';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
+
+const PUBLIC_PATHS = ['/', '/login'];
+
+function isPublicPath(pathname) {
+  if (!pathname) return false;
+  if (PUBLIC_PATHS.includes(pathname)) return true;
+  if (pathname.startsWith('/tenant-portal')) return true;
+  return false;
+}
 
 export default function App({ Component, pageProps }) {
   const [user, setUser] = useState(null);
@@ -16,22 +26,26 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     if (!router.isReady) return;
+
     if (router.pathname.startsWith('/tenant-portal')) {
       setLoading(false);
       return;
     }
+
     fetch('/api/auth/me', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
         if (data?.user) {
           setUser(data.user);
-          if (router.pathname === '/login') router.push('/');
-        } else {
-          if (router.pathname !== '/login') router.push('/login');
+          if (router.pathname === '/login' || router.pathname === '/') {
+            router.replace('/app');
+          }
+        } else if (!isPublicPath(router.pathname)) {
+          router.replace('/login');
         }
       })
       .catch(() => {
-        if (router.pathname !== '/login') router.push('/login');
+        if (!isPublicPath(router.pathname)) router.replace('/login');
       })
       .finally(() => setLoading(false));
   }, [router.isReady, router.pathname]);
@@ -40,13 +54,15 @@ export default function App({ Component, pageProps }) {
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     } catch {
-      // Server offline / network error — still clear local session
+      // still clear local session
     }
     setUser(null);
     router.push('/login');
   };
 
-  if (loading) {
+  // Landing page: no branded spinner overlay for guests
+  const isLanding = router.pathname === '/';
+  if (loading && !isLanding) {
     return (
       <ThemeProvider>
         <div className="min-h-screen flex items-center justify-center surface-page">

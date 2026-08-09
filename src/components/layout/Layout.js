@@ -10,14 +10,15 @@ import { useTranslation } from '../../context/LanguageContext';
 function buildNavConfig(t) {
   return {
     superadmin: [
-      { label: t.dashboard, href: '/', icon: 'grid' },
+      { label: t.dashboard, href: '/app', icon: 'grid' },
       { label: 'Owners', href: '/owners', icon: 'users' },
+      { label: 'Landing customers', href: '/landing-customers', icon: 'building' },
       { label: t.tenants, href: '/tenants', icon: 'user' },
       { label: t.payments, href: '/payments', icon: 'wallet' },
       { label: t.maintenance, href: '/maintenance', icon: 'wrench' },
     ],
     owner: [
-      { label: t.dashboard, href: '/', icon: 'grid' },
+      { label: t.dashboard, href: '/app', icon: 'grid' },
       { label: t.properties, href: '/properties', icon: 'building' },
       { label: t.tenants, href: '/tenants', icon: 'users' },
       { label: t.payments, href: '/payments', icon: 'wallet' },
@@ -27,12 +28,12 @@ function buildNavConfig(t) {
       { label: t.caretakers, href: '/caretakers', icon: 'users' },
     ],
     tenant: [
-      { label: t.myHome, href: '/', icon: 'home' },
+      { label: t.myHome, href: '/app', icon: 'home' },
       { label: t.payments, href: '/payments', icon: 'wallet' },
       { label: t.maintenance, href: '/maintenance', icon: 'wrench' },
     ],
     caretaker: [
-      { label: t.dashboard, href: '/', icon: 'grid' },
+      { label: t.dashboard, href: '/app', icon: 'grid' },
       { label: t.maintenance, href: '/maintenance', icon: 'wrench' },
     ],
   };

@@ -138,6 +138,20 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, created_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_user_ref ON notifications(user_id, ref_key);
+
+-- Landing page: customer logos / names shown under hero
+CREATE TABLE IF NOT EXISTS landing_customers (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  logo_url TEXT,
+  website_url VARCHAR(500),
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_landing_customers_active_sort
+  ON landing_customers(is_active, sort_order ASC, id ASC);
 `;
 
 async function run() {

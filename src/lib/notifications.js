@@ -139,7 +139,7 @@ export async function notifyLeaseCreated(doc, payload) {
     type: 'lease_created',
     title: 'New lease to sign',
     body: unit ? `Your landlord created a lease for Unit ${unit}` : 'Your landlord created a lease agreement',
-    link: '/',
+    link: '/app',
     refKey: `lease_${doc.id}_created`,
   });
 }
@@ -155,7 +155,7 @@ export async function notifyLeaseSigned(doc, party, payload, fullySigned) {
       type: 'lease_sign',
       title: 'Landlord signed lease',
       body: `Please sign your lease${unitLabel}`,
-      link: '/',
+      link: '/app',
       refKey: `lease_${doc.id}_landlord_signed`,
     });
   }
@@ -175,7 +175,7 @@ export async function notifyLeaseSigned(doc, party, payload, fullySigned) {
       type: 'lease_complete',
       title: 'Lease fully signed',
       body: `Your lease is complete${unitLabel}`,
-      link: '/',
+      link: '/app',
       refKey: `lease_${doc.id}_done_tenant`,
     });
     await createNotification(ownerUserId, {
@@ -264,7 +264,7 @@ export async function ensureDailyAlerts(user) {
           type: 'trial_ending',
           title: days === 0 ? 'Trial ends today' : `Trial ends in ${days} day${days === 1 ? '' : 's'}`,
           body: `Your eNuzul trial ends ${end}`,
-          link: '/',
+          link: '/app',
           refKey: `trial_${today}`,
         });
       }

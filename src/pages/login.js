@@ -28,7 +28,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) return setError(data.error || 'Login failed');
       setUser(data.user);
-      router.push('/');
+      router.push('/app');
     } catch {
       setError('Connection error. Please try again.');
     } finally {
