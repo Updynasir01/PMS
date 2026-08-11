@@ -6,7 +6,7 @@ import {
   IconWrench, IconQr, IconCheck, IconUser, IconLayers, IconHome,
 } from '../components/Icons';
 
-const PILOT_WHATSAPP = 'https://wa.me/252615001001?text=' + encodeURIComponent(
+const PILOT_WHATSAPP = 'https://wa.me/252615942403?text=' + encodeURIComponent(
   'Salaan — I want to request an eNuzul pilot for my properties.'
 );
 const PILOT_EMAIL = 'mailto:hello@enuzul.com?subject=' + encodeURIComponent('eNuzul pilot request');
